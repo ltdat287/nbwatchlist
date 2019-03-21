@@ -160,7 +160,7 @@ async function fetchRtPage(path) {
     fs.mkdirSync('db');
   }
 
-  fs.writeFileSync('db/headers_', '/*\n  Access-Control-Allow-Origin: *');
+  fs.writeFileSync('db/_headers', '/*\n  Access-Control-Allow-Origin: *');
 
   let items = [];
 
