@@ -61,7 +61,7 @@
     "deployDb": "netlify deploy --prod --dir db --site ecd9b060-de77-41c2-8e5b-97db5a985b6a",
     "update": "yarn build && yarn deploy",
     "updateDb": "yarn buildDb && yarn deployDb",
-    "updateDbJob": "yarn updateDb --no-color >>logs/updatedb_$(date \"+%y%m%d\").log 2>&1",
+    "updateDbJob": "mkdir -p logs && yarn updateDb --no-color >>logs/updatedb_$(date \"+%y%m%d\").log 2>&1",
     "updateDbJobLoop": "while true; do yarn updateDbJob; done"
   }
 }

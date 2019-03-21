@@ -156,6 +156,9 @@ async function fetchRtPage(path) {
 }
 
 (async function() {
+  fs.mkdirSync('db');
+  fs.writeFileSync('db/headers_', '/*\n  Access-Control-Allow-Origin: *');
+
   let items = [];
 
   // MOVIES
