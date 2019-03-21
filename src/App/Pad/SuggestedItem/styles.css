@@ -2,7 +2,7 @@
 
 :root {
   --tooltip-padding: 16px;
-  --links-width: 70px;
+  --links-width: 89px;
 }
 
 .SuggestedItem {
@@ -61,16 +61,28 @@
   display: inline-block;
 }
 
-.SuggestedItem_links a {
-  margin-right: 7px;
+.SuggestedItem_links > * {
+  margin-right: 5px;
+
+  cursor: pointer;
 }
 
-.SuggestedItem_links a:last-child {
+.SuggestedItem_links > *:last-child {
   margin-right: 0;
 }
 
 .SuggestedItem_links img {
   height: 14px;
+}
+
+.SuggestedItem_links img.youtube {
+  position: relative;
+  top: 2px;
+  height: 18px;
+}
+
+.SuggestedItem_links img.youtube.unavailable {
+  visibility: hidden;
 }
 
 .SuggestedItem_meter {
@@ -212,13 +224,4 @@
 
 .SuggestedItem_tooltip_footerRow > span:last-child {
   margin-right: 0;
-}
-
-.SuggestedItem_tooltip_trailedNotice {
-  margin-top: var(--tooltip-padding);
-
-  color: var(--color-accent);
-  font-size: 12px;
-  font-weight: bold;
-  text-align: center;
 }

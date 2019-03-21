@@ -19,21 +19,16 @@
 
 .Player_closeButton {
   position: absolute;
-  right: 30px;
-  top: 30px;
-  padding: 0;
-  z-index: 4;
+  right: 20px;
+  top: 20px;
+  padding: 10px;
 
-  color: var(--color-yellow);
+  color: var(--color-fg);
   font-family: sans-serif;
-  font-size: 70px;
+  font-size: 20px;
   line-height: 1;
   border: none;
   background-color: transparent;
   cursor: pointer;
   outline: 0;
-}
-
-.Player_closeButton:hover {
-  color: var(--color-accent);
 }

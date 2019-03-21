@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import number from 'number-to-words';
 import Item from '../Item';
+import youtubeLogo from '../../youtube.svg';
 import imdbLogo from '../../imdb.png';
 import rtLogo from '../../rt.svg';
 import rtSquareLogo from '../../rtSquare.svg';
@@ -22,7 +23,7 @@ export default class SuggestedItem extends PureComponent {
   state = {
     ref: null,
     tooltip: null,
-    mouseOverLink: false
+    mouseOverButton: false
   };
 
   componentDidMount() {
@@ -33,11 +34,8 @@ export default class SuggestedItem extends PureComponent {
     window.removeEventListener('keydown', this.onKeyDown);
   }
 
-  onKeyDown = ({ keyCode }) => {
-    if (keyCode === 84 && this.state.tooltip && this.props.item.trailerKey) {
-      localStorage.trailerShortcutPressed = true;
-      this.props.onStartTrailer(this.props.item);
-    }
+  onTrailerButtonPress = () => {
+    this.props.onStartTrailer(this.props.item);
   };
 
   onMouseOver = () => {
@@ -48,12 +46,12 @@ export default class SuggestedItem extends PureComponent {
     this.setState({ tooltip: null });
   };
 
-  onLinkMouseOver = () => {
-    this.setState({ mouseOverLink: true });
+  onButtonMouseOver = () => {
+    this.setState({ mouseOverButton: true });
   };
 
-  onLinkMouseOut = () => {
-    this.setState({ mouseOverLink: false });
+  onButtonMouseOut = () => {
+    this.setState({ mouseOverButton: false });
   };
 
   onRef = ref => {
@@ -93,9 +91,9 @@ export default class SuggestedItem extends PureComponent {
     );
   }
 
-  renderLink(href, originLabel, logo, name) {
+  renderLink(href, label, logo) {
     return (
-      <a href={href} title={`Open — ${originLabel} — ${name}`} target='_blank' rel='noopener noreferrer' onMouseOver={this.onLinkMouseOver} onMouseOut={this.onLinkMouseOut}>
+      <a href={href} title={`Open ${label}`} target='_blank' rel='noopener noreferrer' onMouseOver={this.onButtonMouseOver} onMouseOut={this.onButtonMouseOut}>
         <img alt='' src={logo} />
       </a>
     );
@@ -103,7 +101,7 @@ export default class SuggestedItem extends PureComponent {
 
   render() {
     const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey } } = this.props;
-    const expandedTitle = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
+    const expandedName = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
 
     return (
       <Fragment>
@@ -131,21 +129,29 @@ export default class SuggestedItem extends PureComponent {
                 {season && <span>season {number.toWords(season)}</span>}
                 <span>{moment(date).year()}</span>
               </div>
-              {!localStorage.trailerShortcutPressed && trailerKey && <div className='SuggestedItem_tooltip_trailedNotice'>Press T to see trailer</div>}
             </div>
           </Align>
         )}
-        <Item className='SuggestedItem' type='suggested' id={id} draggingDisabled={this.state.mouseOverLink} onRef={this.onRef} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}>
+        <Item className='SuggestedItem' type='suggested' id={id} draggingDisabled={this.state.mouseOverButton} onRef={this.onRef} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}>
           <div className='SuggestedItem_box'>
             <Fragment>
-              <h3 className='SuggestedItem_title' title={expandedTitle}>
+              <h3 className='SuggestedItem_title' title={expandedName}>
                 <span>{name}</span>
                 {season && <span className='SuggestedItem_season'>{season}</span>}
               </h3>
               <div className='SuggestedItem_links'>
-                {this.renderLink(`https://www.imdb.com/title/tt${imdbId}`,                                                      'IMDb',               imdbLogo,     expandedTitle)}
-                {this.renderLink(`https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`, 'Rotten Tomatoes',    rtSquareLogo, expandedTitle)}
-                {this.renderLink(`https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                 'The Movie Database', tmdbLogo,     expandedTitle)}
+                <img
+                  alt=''
+                  title='Show Trailer'
+                  className={classNames('youtube', { unavailable: !trailerKey })}
+                  src={youtubeLogo}
+                  onClick={this.onTrailerButtonPress}
+                  onMouseOver={this.onButtonMouseOver}
+                  onMouseOut={this.onButtonMouseOut}
+                />
+                {this.renderLink(`https://www.imdb.com/title/tt${imdbId}`,                                                      'IMDb',               imdbLogo)}
+                {this.renderLink(`https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`, 'Rotten Tomatoes',    rtSquareLogo)}
+                {this.renderLink(`https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                 'The Movie Database', tmdbLogo)}
               </div>
               <div className='SuggestedItem_meter'>
                 <div className='SuggestedItem_meter_line' style={{ width: `${meter * 100}%` }} />

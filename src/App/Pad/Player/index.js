@@ -27,14 +27,14 @@ export default class Player extends PureComponent {
 
   render() {
     const { name, trailerKey } = this.props.item;
-    const maxWidth = window.innerWidth - 300;
+    const maxWidth = window.innerWidth - 200;
     const heightForMaxWidth = maxWidth / aspectRatio;
     const height = Math.min(window.innerHeight, heightForMaxWidth);
     const width = height / heightForMaxWidth * maxWidth;
 
     return (
-      <div className='Player'>
-        <button className='Player_closeButton' onClick={this.props.onClose}>╳</button>
+      <div className='Player' onClick={this.props.onClose}>
+        <button className='Player_closeButton'>╳</button>
         <iframe
           title={name}
           width={width}
