@@ -1,0 +1,37 @@
+@import '../../vars.css';
+
+.Pad {
+  display: flex;
+  justify-content: space-between;
+  min-height: 1000px;
+  margin: 0 auto;
+  margin-top: 130px;
+}
+
+@media (min-width: 1300px) {
+  .Pad {
+    width: 1100px;
+  }
+}
+
+@media (max-width: 1300px) {
+  .Pad {
+    width: 1000px;
+  }
+}
+
+@media (max-width: 1000px) {
+  .Pad {
+    width: 930px;
+  }
+}
+
+/* Divider */
+
+.Pad_column_divider {
+  padding: var(--item-padding);
+  padding-top: calc(var(--item-padding) * 2);
+
+  color: var(--color-column-fg);
+  font-size: 18px;
+}

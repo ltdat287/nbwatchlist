@@ -1,0 +1,224 @@
+@import '../../../vars.css';
+
+:root {
+  --tooltip-padding: 16px;
+  --links-width: 70px;
+}
+
+.SuggestedItem {
+  height: 50px;
+  margin-bottom: 3px;
+
+  background-color: var(--color-item-bg);
+  overflow: hidden;
+}
+
+.SuggestedItem:last-child {
+  margin-bottom: 0;
+}
+
+.SuggestedItem_box {
+  margin: calc(var(--item-padding) + 1px) var(--item-padding);
+}
+
+.SuggestedItem_title {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 7px;
+  width: calc(var(--column-width) - var(--item-padding) * 2);
+
+  font-size: 14px;
+  font-weight: normal;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.SuggestedItem_season {
+  position: absolute;
+  margin-left: 4px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: super;
+}
+
+.SuggestedItem:hover:not(.Item_dragPreview) .SuggestedItem_title {
+  width: calc(var(--column-width) - var(--item-padding) * 2 - var(--links-width) - var(--tooltip-padding));
+  margin-right: var(--tooltip-padding);
+}
+
+.SuggestedItem_links {
+  display: none;
+  position: relative;
+  bottom: 8px;
+  width: var(--links-width);
+}
+
+.SuggestedItem:hover:not(.Item_dragPreview) .SuggestedItem_links {
+  display: inline-block;
+}
+
+.SuggestedItem_links a {
+  margin-right: 7px;
+}
+
+.SuggestedItem_links a:last-child {
+  margin-right: 0;
+}
+
+.SuggestedItem_links img {
+  height: 14px;
+}
+
+.SuggestedItem_meter {
+  height: 4px;
+
+  background-color: var(--color-column-bg);
+}
+
+.SuggestedItem_meter_line {
+  height: 100%;
+
+  background-color: var(--color-accent);
+}
+
+/* Tooltip */
+
+.SuggestedItem_tooltip {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  width: 300px;
+  padding: var(--tooltip-padding);
+
+  background-color: var(--color-item-bg);
+  border: 1px solid var(--color-bg);
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.2);
+}
+
+.SuggestedItem_tooltip.aligned {
+  visibility: visible;
+}
+
+.SuggestedItem_tooltip:before {
+  position: absolute;
+  left: 0;
+  content: ' ';
+
+  margin-left: -19px;
+  border: 10px solid transparent;
+  border-right-color: var(--color-item-bg);
+}
+
+.SuggestedItem_tooltip.c:before {
+  margin-top: -10px;
+  top: 50%;
+}
+
+.SuggestedItem_tooltip.t:before {
+  top: 15px;
+}
+
+.SuggestedItem_tooltip.b:before {
+  bottom: 15px;
+}
+
+.SuggestedItem_tooltip_scores {
+  display: inline-block;
+  padding-top: 9px;
+  padding-left: 4px;
+
+  text-align: center;
+}
+
+.SuggestedItem_tooltip_scores_origin {
+  margin-bottom: 20px;
+}
+
+.SuggestedItem_tooltip_scores_origin:last-child {
+  margin-bottom: 0;
+}
+
+.SuggestedItem_tooltip_scores_logo {
+  display: block;
+  margin: 0 auto;
+  height: 20px;
+}
+
+.SuggestedItem_tooltip_scores_logo[alt=IMDb] {
+  margin-bottom: -7px;
+}
+
+.SuggestedItem_tooltip_scores_score {
+  margin-top: 14px;
+}
+
+.SuggestedItem_tooltip_scores_score_name {
+  margin-bottom: 3px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.SuggestedItem_tooltip_scores_score_number {
+  font-size: 22px;
+}
+
+.SuggestedItem_tooltip_scores_score_votes {
+  margin-top: 3px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 10px;
+}
+
+.SuggestedItem_tooltip_poster {
+  float: right;
+  display: inline-block;
+  width: 200px;
+  height: 300px;
+
+  border: 1px solid var(--color-bg);
+}
+
+.SuggestedItem_tooltip_text {
+  display: inline-block;
+  margin: var(--tooltip-padding) 0;
+
+  font-size: 12px;
+  line-height: 2;
+  text-align: justify;
+}
+
+.SuggestedItem_tooltip_footerRow {
+  margin-bottom: var(--tooltip-padding);
+
+  color: var(--color-item-muted-fg);
+  font-size: 12px;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.SuggestedItem_tooltip_footerRow:last-child {
+  margin-bottom: 0;
+}
+
+.SuggestedItem_tooltip_footerRow > span {
+  margin-right: 10px;
+}
+
+.SuggestedItem_tooltip_footerRow > span:last-child {
+  margin-right: 0;
+}
+
+.SuggestedItem_tooltip_trailedNotice {
+  margin-top: var(--tooltip-padding);
+
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+}

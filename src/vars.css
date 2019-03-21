@@ -1,0 +1,37 @@
+:root {
+  --font-text:            Montserrat, sans-serif;
+  --font-brand:           Limelight, cursive;
+
+  --color-gray2:          rgb(238,  238,  238);
+  --color-gray4:          rgb(189,  189,  189);
+  --color-gray5:          rgb(158,  158,  158);
+  --color-gray6:          rgb(117,  117,  117);
+  --color-gray7:          rgb( 97,   97,   97);
+  --color-gray75:         rgb( 75,   75,   75);
+  --color-gray8:          rgb( 66,   66,   66);
+  --color-gray82:         rgb( 59,   59,   59);
+  --color-gray85:         rgb( 49,   49,   49);
+  --color-gray88:         rgb( 39,   39,   39);
+  --color-gray9:          rgb( 33,   33,   33);
+  --color-yellow:         rgb(246,  190,   26);
+  --color-dark-yellow:    rgb(255,  152,    0);
+  --color-orange:         rgb(230,   81,    0);
+  --color-deep-orange:    rgb(221,   44,    0);
+  --color-green:          rgb( 67,  160,   71);
+
+  --color-accent:             var(--color-yellow);
+  --color-bg:                 var(--color-gray9);
+  --color-fg:                 var(--color-gray2);
+  --color-column-bg:          var(--color-gray88);
+  --color-column-drag-bg:     var(--color-gray85);
+  --color-column-drop-bg:     var(--color-gray82);
+  --color-column-fg:          var(--color-gray7);
+  --color-item-bg:            var(--color-gray8);
+  --color-item-muted-bg:      var(--color-gray85);
+  --color-item-focus-bg:      var(--color-gray75);
+  --color-item-muted-fg:      var(--color-gray6);
+  --color-separator:          var(--color-gray75);
+
+  --column-width: 300px;
+  --item-padding: 10px;
+}

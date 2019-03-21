@@ -1,0 +1,204 @@
+@import '../vars.css';
+
+:root {
+  --attribution-size:     16px;
+  --side-banner-padding:  20px;
+}
+
+/* Alpha Notice */
+
+.App_alphaNotice {
+  position: absolute;
+  top: var(--side-banner-padding);
+  left: var(--side-banner-padding);
+
+  font-family: var(--font-brand);
+}
+
+@media (max-width: 1400px) {
+  .App_alphaNotice {
+    display: none;
+  }
+}
+
+/* Attribution */
+
+.App_attribution {
+  position: absolute;
+  top: var(--side-banner-padding);
+  right: var(--side-banner-padding);
+}
+
+@media (max-width: 1400px) {
+  .App_attribution {
+    position: initial;
+    margin-top: 30px;
+    margin-bottom: -30px;
+
+    text-align: center;
+  }
+}
+
+.App_attribution_poweredBy {
+  position: relative;
+  bottom: 3px;
+
+  color: var(--color-item-bg);
+  font-size: 12px;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.App_attribution > * {
+  display: inline-block;
+  margin-right: var(--attribution-size);
+}
+
+.App_attribution > *:last-child {
+  margin-right: 0;
+}
+
+.App_attribution img {
+  height: var(--attribution-size);
+
+  filter: grayscale(100%) brightness(50%);
+
+  transition-property: filter;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in;
+}
+
+.App_attribution img:hover {
+  filter: none;
+
+  transition-timing-function: ease-out;
+}
+
+/* Title */
+
+.App_title {
+  margin-top: 50px;
+
+  font-family: var(--font-brand);
+  font-size: 78px;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-accent);
+}
+
+.App_title.error {
+  font-size: 50px;
+}
+
+/* Subscribe */
+
+form.App_subscribe {
+  width: 600px;
+  margin: 0 auto;
+  margin-top: 120px;
+
+  text-align: center;
+}
+
+form.App_subscribe h2 {
+  margin-left: 25px;
+  margin-bottom: 9px;
+
+  font-size: 12px;
+  color: var(--color-item-muted-fg);
+  text-align: left;
+}
+
+form.App_subscribe input {
+  width: 400px;
+  padding: 14px;
+
+  color: var(--color-fg);
+  background-color: var(--color-item-bg);
+  font-family: var(--font-text);
+  font-size: 16px;
+  border: none;
+  outline: none;
+
+  transition-timing-function: ease-in;
+}
+
+form.App_subscribe input:focus {
+  background-color: var(--color-item-focus-bg);
+
+  transition-property: background-color;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+}
+
+form.App_subscribe input::placeholder {
+  color: var(--color-fg);
+}
+
+form.App_subscribe button[type=submit] {
+  width: 150px;
+  height: 47px;
+
+  color: var(--color-bg);
+  background-color: var(--color-yellow);
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  outline: none;
+  cursor: pointer;
+
+  transition-property: filter;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in;
+}
+
+form.App_subscribe button[type=submit]:hover {
+  filter: brightness(105%);
+
+  transition-timing-function: ease-out;
+}
+
+form.App_subscribe button[type=submit]:active {
+  filter: brightness(108%);
+}
+
+.App_subscribe_hideButtonContainer {
+  margin-right: 50px;
+
+  text-align: right;
+}
+
+form.App_subscribe button[type=button] {
+  margin-top: 5px;
+
+  color: var(--color-item-muted-fg);
+  background-color: transparent;
+  text-decoration: underline;
+  border: none;
+  outline: none;
+
+  transition-property: color;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in;
+}
+
+form.App_subscribe button[type=button]:hover {
+  color: var(--color-item-fg);
+  cursor: pointer;
+
+  transition-timing-function: ease-out;
+}
+
+/* Contact */
+
+.App_contact {
+  margin: 30px 0;
+
+  font-size: 12px;
+  text-align: center;
+}
+
+.App_contact a {
+  color: var(--color-accent);
+}

@@ -1,0 +1,26 @@
+@import '../../../vars.css';
+
+.Item {
+  cursor: grab;
+}
+
+.Item.draggingDisabled {
+  cursor: auto;
+}
+
+.Item.dragging {
+  visibility: hidden;
+}
+
+.Item_dragPreview {
+  position: fixed;
+  z-index: 2;
+
+  box-shadow: 0 0 20px 5px rgba(0, 0, 0, 0.15);
+  cursor: grabbing;
+}
+
+.Item_dragPreview * {
+  /* disable title tooltips */
+  pointer-events: none;
+}

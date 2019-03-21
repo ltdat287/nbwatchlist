@@ -1,0 +1,67 @@
+{
+  "name": "nbwatchlist",
+  "private": true,
+  "devDependencies": {
+    "left-pad": "1.3.0",
+    "netlify-cli": "2.8.3",
+    "postcss-calc": "7.0.1",
+    "postcss-custom-properties": "8.0.9",
+    "postcss-import": "12.0.1",
+    "postcss-url": "8.0.0",
+    "react-scripts": "2.1.1",
+    "react-scripts-x": "0.1.3"
+  },
+  "dependencies": {
+    "classnames": "2.2.6",
+    "fbemitter": "2.1.1",
+    "human-format": "0.10.1",
+    "lodash": "4.17.11",
+    "moment": "2.24.0",
+    "number-to-words": "1.2.4",
+    "prop-types": "15.7.2",
+    "rc-align": "2.4.5",
+    "rc-trigger": "2.6.2",
+    "react": "16.8.4",
+    "react-app-polyfill": "0.2.2",
+    "react-dom": "16.8.4",
+    "reset-css": "4.0.1",
+    "superagent": "4.1.0"
+  },
+  "react-scripts-x": {
+    "postcss": [
+      {
+        "name": "postcss-import"
+      },
+      {
+        "name": "postcss-url"
+      },
+      {
+        "name": "postcss-custom-properties",
+        "config": {
+          "preserve": false
+        }
+      },
+      {
+        "name": "postcss-calc"
+      }
+    ]
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 8",
+    "not op_mini all"
+  ],
+  "scripts": {
+    "start": "react-scripts-x start",
+    "test": "react-scripts-x test",
+    "build": "react-scripts-x build",
+    "buildDb": "node buildDb.js",
+    "deploy": "netlify deploy --prod --dir build --site be503444-d61b-463e-ae63-d09686d5cbd8",
+    "deployDb": "netlify deploy --prod --dir db --site 1353c170-f3d1-4049-b77b-ceb5b3944f83",
+    "update": "yarn build && yarn deploy",
+    "updateDb": "yarn buildDb && yarn deployDb",
+    "updateDbJob": "yarn updateDb --no-color >>logs/updatedb_$(date \"+%y%m%d\").log 2>&1",
+    "updateDbJobLoop": "while true; do yarn updateDbJob; done"
+  }
+}

@@ -1,0 +1,39 @@
+@import '../../../vars.css';
+
+.WatchedItem {
+  height: 50px;
+  margin-bottom: 3px;
+
+  background-color: var(--color-item-muted-bg);
+  overflow: hidden;
+}
+
+.WatchedItem:last-child {
+  margin-bottom: 0;
+}
+
+.WatchedItem_title {
+  position: relative;
+  top: 8px;
+  max-width: calc(var(--column-width) - var(--item-padding) * 2);
+  margin: var(--item-padding);
+
+  color: var(--color-item-muted-fg);
+  font-size: 14px;
+  font-weight: normal;
+  text-align: center;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.WatchedItem_season {
+  position: absolute;
+  margin-left: 4px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: super;
+}

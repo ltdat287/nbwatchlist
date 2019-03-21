@@ -1,0 +1,92 @@
+@import '../../../vars.css';
+
+.PadColumnPlaceholder {
+  margin-top: 50px;
+  width: 100%;
+
+  color: var(--color-column-fg);
+  line-height: 3;
+  font-size: 18px;
+  text-align: center;
+}
+
+.PadColumn {
+  display: flex;
+  flex-direction: column;
+  width: var(--column-width);
+}
+
+.PadColumn_title {
+  position: relative;
+  margin-bottom: 24px;
+
+  font-size: 32px;
+  font-weight: normal;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--color-accent);
+}
+
+.PadColumn_body {
+  position: relative;
+  flex: 1;
+
+  background-color: var(--color-column-bg);
+}
+
+.PadColumn_body_dragOverlay {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.PadColumn_body_dragOverlay {
+  display: none;
+}
+
+.PadColumn_body_dragOverlay.dragSource {
+  display: block;
+  opacity: 0;
+}
+
+.PadColumn_body_dragOverlay.dragTarget {
+  display: block;
+
+  background-color: var(--color-column-drag-bg);
+}
+
+.PadColumn_body_dragOverlay.dropTarget {
+  display: block;
+
+  background-color: var(--color-column-drop-bg);
+
+  transition-property: background-color;
+  transition-duration: 0.1s;
+  transition-timing-function: ease-out;
+}
+
+/* Config Button */
+
+.PadColumn_configButton {
+  position: absolute;
+  top: -11px;
+  right: 10px;
+  padding: 10px;
+
+  color: var(--color-item-bg);
+  font-family: Georgia;
+  font-size: 35px;
+  transform: rotate(90deg);
+  transform-origin: center;
+  cursor: default;
+  user-select: none;
+}
+
+.PadColumn_configButton:hover {
+  color: var(--color-item-muted-fg);
+}
+
+.PadColumn_configButton.active {
+  color: var(--color-accent);
+}

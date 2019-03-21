@@ -1,0 +1,96 @@
+@import '../../../../vars.css';
+
+:root {
+  --padding: 8px;
+}
+
+.ConfigPanel {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+  padding: 30px 10px;
+
+  background-color: var(--color-item-bg);
+  box-shadow: 0 0 30px 15px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--color-bg);
+  font-size: 13px;
+}
+
+.ConfigPanel button,
+.ConfigPanel select {
+  font-family: var(--font-text);
+}
+
+.ConfigPanel button {
+  width: 60px;
+}
+
+.ConfigPanel:before {
+  position: absolute;
+  top: 0;
+  left: 30px;
+  content: ' ';
+
+  margin-top: -15px;
+  margin-left: -8px;
+  border: 8px solid transparent;
+  border-bottom-color: var(--color-item-bg);
+}
+
+.ConfigPanel_section {
+  display: inline-block;
+  padding: 0 20px;
+  width: 200px;
+
+  border-right: 1px solid var(--color-separator);
+}
+
+.ConfigPanel_section:last-child {
+  border-right: 0;
+  padding-right: 0;
+}
+
+.ConfigPanel_section h2 {
+  margin-top: 30px;
+  margin-bottom: 15px;
+
+  color: var(--color-accent);
+  font-size: 20px;
+  font-weight: normal;
+  text-transform: uppercase;
+}
+
+.ConfigPanel_section h2:first-child {
+  margin-top: 0;
+}
+
+.ConfigPanel_section h3 {
+  margin-top: 15px;
+  margin-bottom: 5px;
+
+  font-weight: bold;
+}
+
+.ConfigPanel_section h3:first-child {
+  margin-top: 0;
+}
+
+.ConfigPanel_yearRanges > * {
+  display: inline-block;
+}
+
+.ConfigPanel [name='year.max'] {
+  margin-right: var(--padding);
+}
+
+.ConfigPanel [name='year.min'] {
+  margin-left: var(--padding);
+}
+
+.ConfigPanel_selectGenres {
+  margin-bottom: 5px;
+}
+
+.ConfigPanel [name='genres.selectAll'] {
+  margin-right: var(--padding);
+}

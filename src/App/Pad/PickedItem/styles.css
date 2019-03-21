@@ -1,0 +1,76 @@
+@import '../../../vars.css';
+
+:root {
+  --height: 150px;
+  --info-hoz-padding: 15px;
+  --info-ver-padding: 20px;
+  --info-width: calc(var(--column-width) - var(--info-hoz-padding) * 2 - 100px);
+}
+
+.PickedItem {
+  height: var(--height);
+  margin-bottom: 3px;
+
+  background-color: var(--color-item-bg);
+  overflow: hidden;
+}
+
+.PickedItem:last-child {
+  margin-bottom: 0;
+}
+
+.PickedItem_poster {
+  display: inline-block;
+  width: 100px;
+  height: var(--height);
+}
+
+.PickedItem_info {
+  position: absolute;
+  display: inline-block;
+  width: var(--info-width);
+  height: calc(var(--height) - var(--info-ver-padding) * 2);
+  margin: var(--info-ver-padding) var(--info-hoz-padding);
+}
+
+.PickedItem_info-flex {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.PickedItem_title {
+  max-width: var(--info-width);
+
+  font-size: 14px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.PickedItem_season {
+  position: absolute;
+  margin-left: 4px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: super;
+}
+
+.PickedItem_label {
+  font-size: 22px;
+}
+
+.PickedItem_label.season {
+  font-size: 18px;
+  text-transform: uppercase;
+}
+
+.PickedItem_genre {
+  color: var(--color-item-muted-fg);
+  font-size: 14px;
+  text-transform: uppercase;
+}
