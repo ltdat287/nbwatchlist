@@ -27,23 +27,32 @@ export default class SuggestedItem extends PureComponent {
     mouseOverButton: false
   };
 
+  mouseOverEvent = null;
   tooltipTimeoutId = null;
   subscriptions = [];
 
   componentDidMount() {
-    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('scroll', this.onScroll);
 
     this.subscriptions = [
       Events.subscribe('item.drag.start', this.onItemDragStart),
-      Events.subscribe('suggestedItem.tooltip.start', this.onSuggestedItemTooltipStart)
+      Events.subscribe('suggestedItem.tooltip.start', this.onSuggestedItemTooltipStart),
+      Events.subscribe('suggestedItem.tooltip.end', this.onSuggestedItemTooltipEnd)
     ];
   }
 
   componentWillUnmount() {
-    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('scroll', this.onScroll);
 
     this.subscriptions.forEach(s => s.remove());
+    clearTimeout(this.tooltipTimeoutId);
   }
+
+  onScroll = () => {
+    if (this.mouseOverEvent) {
+      this.onMouseOver(this.mouseOverEvent);
+    }
+  };
 
   onTrailerButtonPress = () => {
     this.props.onStartTrailer(this.props.item);
@@ -67,30 +76,36 @@ export default class SuggestedItem extends PureComponent {
     if (this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
       this.setState({ tooltip: null });
+      Events.emit('suggestedItem.tooltip.end');
     }
   };
 
-  onSuggestedItemTooltipStart = item => {
+  onSuggestedItemTooltipStart = (item, e) => {
     if (item !== this.props.item && this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
       this.setState({ tooltip: null });
     }
+
+    this.mouseOverEvent = e;
+  };
+
+  onSuggestedItemTooltipEnd = () => {
+    this.mouseOverEvent = null;
   };
 
   onMouseOver = e => {
     if (this.shouldShowTooltip(e) && !this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
       this.setState({ tooltip: { point: 'c', yOffset: 0, aligned: false } });
-      Events.emit('suggestedItem.tooltip.start', this.props.item);
+      Events.emit('suggestedItem.tooltip.start', this.props.item, { ...e });
     }
   };
 
   onMouseOut = e => {
     if (!this.shouldShowTooltip(e) && this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
-      this.tooltipTimeoutId = setTimeout(() => {
-        this.setState({ tooltip: null });
-      }, 100);
+      this.tooltipTimeoutId = setTimeout(() => this.setState({ tooltip: null }), 100);
+      Events.emit('suggestedItem.tooltip.end');
     }
   };
 
@@ -180,7 +195,7 @@ export default class SuggestedItem extends PureComponent {
             </div>
           </Align>
         )}
-        <Item className='SuggestedItem' type='suggested' id={id} draggingDisabled={this.state.mouseOverButton} onRef={this.onRef} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}>
+        <Item className={classNames('SuggestedItem', { hover: this.state.tooltip })} type='suggested' id={id} draggingDisabled={this.state.mouseOverButton} onRef={this.onRef} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}>
           <div className='SuggestedItem_box'>
             <Fragment>
               <h3 className='SuggestedItem_title' title={expandedName}>

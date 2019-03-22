@@ -45,7 +45,7 @@
   vertical-align: super;
 }
 
-.SuggestedItem:hover:not(.Item_dragPreview) .SuggestedItem_title {
+.SuggestedItem.hover .SuggestedItem_title {
   width: calc(var(--column-width) - var(--item-padding) * 2 - var(--links-width) - var(--tooltip-padding));
   margin-right: var(--tooltip-padding);
 }
@@ -57,7 +57,7 @@
   width: var(--links-width);
 }
 
-.SuggestedItem:hover:not(.Item_dragPreview) .SuggestedItem_links {
+.SuggestedItem.hover .SuggestedItem_links {
   display: inline-block;
 }
 
