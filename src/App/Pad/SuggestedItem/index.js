@@ -195,7 +195,14 @@ export default class SuggestedItem extends PureComponent {
             </div>
           </Align>
         )}
-        <Item className={classNames('SuggestedItem', { hover: this.state.tooltip })} type='suggested' id={id} draggingDisabled={this.state.mouseOverButton} onRef={this.onRef} onMouseOver={this.onMouseOver} onMouseOut={this.onMouseOut}>
+        <Item className={classNames('SuggestedItem', { hover: this.state.tooltip, safari: navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') })}
+          type='suggested'
+          id={id}
+          draggingDisabled={this.state.mouseOverButton}
+          onRef={this.onRef}
+          onMouseOver={this.onMouseOver}
+          onMouseOut={this.onMouseOut}
+        >
           <div className='SuggestedItem_box'>
             <Fragment>
               <h3 className='SuggestedItem_title' title={expandedName}>

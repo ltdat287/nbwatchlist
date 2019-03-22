@@ -21,6 +21,11 @@
   margin: calc(var(--item-padding) + 1px) var(--item-padding);
 }
 
+.SuggestedItem.hover.safari .SuggestedItem_box {
+  position: relative;
+  bottom: 5px;
+}
+
 .SuggestedItem_title {
   position: relative;
   display: inline-block;
@@ -59,6 +64,10 @@
 
 .SuggestedItem.hover .SuggestedItem_links {
   display: inline-block;
+}
+
+.SuggestedItem.hover.safari .SuggestedItem_links {
+  bottom: 1px;
 }
 
 .SuggestedItem_links > * {
