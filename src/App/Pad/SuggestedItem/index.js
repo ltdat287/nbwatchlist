@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import number from 'number-to-words';
 import Item from '../Item';
+import Events from '../../Events';
 import youtubeLogo from '../../youtube.svg';
 import imdbLogo from '../../imdb.png';
 import rtLogo from '../../rt.svg';
@@ -26,24 +27,71 @@ export default class SuggestedItem extends PureComponent {
     mouseOverButton: false
   };
 
+  tooltipTimeoutId = null;
+  subscriptions = [];
+
   componentDidMount() {
     window.addEventListener('keydown', this.onKeyDown);
+
+    this.subscriptions = [
+      Events.subscribe('item.drag.start', this.onItemDragStart),
+      Events.subscribe('suggestedItem.tooltip.start', this.onSuggestedItemTooltipStart)
+    ];
   }
 
   componentWillUnmount() {
     window.removeEventListener('keydown', this.onKeyDown);
+
+    this.subscriptions.forEach(s => s.remove());
   }
 
   onTrailerButtonPress = () => {
     this.props.onStartTrailer(this.props.item);
   };
 
-  onMouseOver = () => {
-    this.setState({ tooltip: { point: 'c', yOffset: 0, aligned: false } });
+  shouldShowTooltip({ clientX, clientY }) {
+    let node = document.elementFromPoint(clientX, clientY);
+
+    do {
+      if (node === this.state.ref) {
+        return true;
+      }
+
+      node = node && node.parentNode;
+    } while (node);
+
+    return false;
+  }
+
+  onItemDragStart = () => {
+    if (this.state.tooltip) {
+      clearTimeout(this.tooltipTimeoutId);
+      this.setState({ tooltip: null });
+    }
   };
 
-  onMouseOut = () => {
-    this.setState({ tooltip: null });
+  onSuggestedItemTooltipStart = item => {
+    if (item !== this.props.item && this.state.tooltip) {
+      clearTimeout(this.tooltipTimeoutId);
+      this.setState({ tooltip: null });
+    }
+  };
+
+  onMouseOver = e => {
+    if (this.shouldShowTooltip(e) && !this.state.tooltip) {
+      clearTimeout(this.tooltipTimeoutId);
+      this.setState({ tooltip: { point: 'c', yOffset: 0, aligned: false } });
+      Events.emit('suggestedItem.tooltip.start', this.props.item);
+    }
+  };
+
+  onMouseOut = e => {
+    if (!this.shouldShowTooltip(e) && this.state.tooltip) {
+      clearTimeout(this.tooltipTimeoutId);
+      this.tooltipTimeoutId = setTimeout(() => {
+        this.setState({ tooltip: null });
+      }, 100);
+    }
   };
 
   onButtonMouseOver = () => {

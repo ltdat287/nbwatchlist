@@ -47,6 +47,7 @@ export default class Item extends PureComponent {
     window.addEventListener('mouseup', this.onMouseUp);
     window.addEventListener('mousemove', this.onMouseMove);
 
+    Events.emit('item.drag.start', this.props);
     Events.emit('item.drag', this.props, e.nativeEvent);
   };
 
