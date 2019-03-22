@@ -77,7 +77,7 @@ export default class Pad extends PureComponent {
     this.yearsFetched.push(year);
 
     request
-      .get(`https://brave-beaver-147fc1.netlify.com/${year}.json`)
+      .get(`https://nbwatchlist-db.netlify.com/${year}.json`)
       .end((err, { status, body }) => {
         if (status === 200) {
           this.setState(state => ({ ...state, items: state.items.concat(body) }));
