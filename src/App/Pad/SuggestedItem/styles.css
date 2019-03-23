@@ -82,6 +82,12 @@
 
 .SuggestedItem_links img {
   height: 16px;
+
+  filter: grayscale(100%);
+}
+
+.SuggestedItem_links img:hover {
+  filter: none;
 }
 
 .SuggestedItem_links img.youtube {
