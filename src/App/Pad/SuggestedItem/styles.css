@@ -2,7 +2,7 @@
 
 :root {
   --tooltip-padding: 16px;
-  --links-width: 74px;
+  --links-width: 83px;
 }
 
 .SuggestedItem {
@@ -23,7 +23,7 @@
 
 .SuggestedItem.hover.safari .SuggestedItem_box {
   position: relative;
-  bottom: 5px;
+  bottom: 8px;
 }
 
 .SuggestedItem_title {
@@ -58,7 +58,7 @@
 .SuggestedItem_links {
   display: none;
   position: relative;
-  bottom: 8px;
+  bottom: 7px;
   width: var(--links-width);
 }
 
@@ -67,7 +67,7 @@
 }
 
 .SuggestedItem.hover.safari .SuggestedItem_links {
-  bottom: 1px;
+  bottom: -1px;
 }
 
 .SuggestedItem_links > * {
@@ -81,13 +81,13 @@
 }
 
 .SuggestedItem_links img {
-  height: 14px;
+  height: 16px;
 }
 
 .SuggestedItem_links img.youtube {
   position: relative;
-  top: 2px;
-  height: 18px;
+  top: 3px;
+  height: 21px;
 }
 
 .SuggestedItem_links img.youtube.unavailable {

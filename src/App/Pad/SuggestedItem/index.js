@@ -6,12 +6,13 @@ import moment from 'moment';
 import number from 'number-to-words';
 import Item from '../Item';
 import Events from '../../Events';
-import youtubeLogo from '../../youtube.svg';
+import youtubeIcon from '../../youtube.svg';
 import imdbLogo from '../../imdb.png';
-import imdbSquareLogo from '../../imdbSquare.ico';
+import imdbIcon16 from '../../imdb16.png';
+import imdbIcon32 from '../../imdb32.png';
 import rtLogo from '../../rt.svg';
-import rtSquareLogo from '../../rtSquare.svg';
-import tmdbLogo from '../../tmdbSquare.svg';
+import rtIcon from '../../rtSquare.svg';
+import tmdbIcon from '../../tmdbSquare.svg';
 import './styles.css';
 
 export default class SuggestedItem extends PureComponent {
@@ -215,14 +216,14 @@ export default class SuggestedItem extends PureComponent {
                   alt=''
                   title='Show Trailer'
                   className={classNames('youtube', { unavailable: !trailerKey })}
-                  src={youtubeLogo}
+                  src={youtubeIcon}
                   onClick={this.onTrailerButtonPress}
                   onMouseOver={this.onButtonMouseOver}
                   onMouseOut={this.onButtonMouseOut}
                 />
-                {this.renderLink(`https://www.imdb.com/title/tt${imdbId}`,                                                      'IMDb',               imdbSquareLogo)}
-                {this.renderLink(`https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`, 'Rotten Tomatoes',    rtSquareLogo)}
-                {this.renderLink(`https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                 'The Movie Database', tmdbLogo)}
+                {this.renderLink(`https://www.imdb.com/title/tt${imdbId}`,                                                      'IMDb',               window.devicePixelRatio < 2 ? imdbIcon16 : imdbIcon32)}
+                {this.renderLink(`https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`, 'Rotten Tomatoes',    rtIcon)}
+                {this.renderLink(`https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                 'The Movie Database', tmdbIcon)}
               </div>
               <div className='SuggestedItem_meter'>
                 <div className='SuggestedItem_meter_line' style={{ width: `${meter * 100}%` }} />
