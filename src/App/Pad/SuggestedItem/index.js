@@ -15,6 +15,12 @@ import rtIcon from '../../rtSquare.svg';
 import tmdbIcon from '../../tmdbSquare.svg';
 import './styles.css';
 
+let mouseMoveEvent;
+
+window.addEventListener('mousemove', e => {
+  mouseMoveEvent = e;
+});
+
 export default class SuggestedItem extends PureComponent {
 
   static propTypes = {
@@ -29,7 +35,6 @@ export default class SuggestedItem extends PureComponent {
     mouseOverButton: false
   };
 
-  mouseOverEvent = null;
   tooltipTimeoutId = null;
   subscriptions = [];
 
@@ -38,8 +43,7 @@ export default class SuggestedItem extends PureComponent {
 
     this.subscriptions = [
       Events.subscribe('item.drag.start', this.onItemDragStart),
-      Events.subscribe('suggestedItem.tooltip.start', this.onSuggestedItemTooltipStart),
-      Events.subscribe('suggestedItem.tooltip.end', this.onSuggestedItemTooltipEnd)
+      Events.subscribe('suggestedItem.tooltip.start', this.onSuggestedItemTooltipStart)
     ];
   }
 
@@ -51,8 +55,12 @@ export default class SuggestedItem extends PureComponent {
   }
 
   onScroll = () => {
-    if (this.mouseOverEvent) {
-      this.onMouseOver(this.mouseOverEvent);
+    if (mouseMoveEvent) {
+      if (this.state.tooltip) {
+        this.onMouseOut(mouseMoveEvent);
+      } else {
+        this.onMouseOver(mouseMoveEvent);
+      }
     }
   };
 
@@ -74,40 +82,35 @@ export default class SuggestedItem extends PureComponent {
     return false;
   }
 
+  hideTooltip = () => {
+    clearTimeout(this.tooltipTimeoutId);
+    this.setState({ tooltip: null });
+  }
+
   onItemDragStart = () => {
     if (this.state.tooltip) {
-      clearTimeout(this.tooltipTimeoutId);
-      this.setState({ tooltip: null });
-      Events.emit('suggestedItem.tooltip.end');
+      this.hideTooltip();
     }
   };
 
-  onSuggestedItemTooltipStart = (item, e) => {
+  onSuggestedItemTooltipStart = item => {
     if (item !== this.props.item && this.state.tooltip) {
-      clearTimeout(this.tooltipTimeoutId);
-      this.setState({ tooltip: null });
+      this.hideTooltip();
     }
-
-    this.mouseOverEvent = e;
-  };
-
-  onSuggestedItemTooltipEnd = () => {
-    this.mouseOverEvent = null;
   };
 
   onMouseOver = e => {
     if (this.shouldShowTooltip(e) && !this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
       this.setState({ tooltip: { point: 'c', yOffset: 0, aligned: false } });
-      Events.emit('suggestedItem.tooltip.start', this.props.item, { ...e });
+      Events.emit('suggestedItem.tooltip.start', this.props.item);
     }
   };
 
   onMouseOut = e => {
     if (!this.shouldShowTooltip(e) && this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
-      this.tooltipTimeoutId = setTimeout(() => this.setState({ tooltip: null }), 100);
-      Events.emit('suggestedItem.tooltip.end');
+      this.tooltipTimeoutId = setTimeout(this.hideTooltip, 100);
     }
   };
 
