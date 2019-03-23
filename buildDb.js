@@ -444,7 +444,7 @@ async function fetchRtPage(path) {
                   value: parseFloat(imdb.aggregateRating.ratingValue)
                 } : undefined,
 
-                rtAudience: rt.seasonData.tvRatingSummary ? {
+                rtAudience: rt.seasonData && rt.seasonData.tvRatingSummary ? {
                   votes: rt.seasonData.tvRatingSummary.numReviews,
                   value: rt.seasonData.tvRatingSummary.averageRating
                 } : undefined,
