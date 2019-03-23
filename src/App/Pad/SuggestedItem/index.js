@@ -156,14 +156,6 @@ export default class SuggestedItem extends PureComponent {
     );
   }
 
-  renderLink(href, label, logo) {
-    return (
-      <a href={href} title={`Open ${label}`} target='_blank' rel='noopener noreferrer' onMouseOver={this.onButtonMouseOver} onMouseOut={this.onButtonMouseOut}>
-        <img alt='' src={logo} />
-      </a>
-    );
-  }
-
   render() {
     const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey } } = this.props;
     const expandedName = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
@@ -221,9 +213,15 @@ export default class SuggestedItem extends PureComponent {
                   onMouseOver={this.onButtonMouseOver}
                   onMouseOut={this.onButtonMouseOut}
                 />
-                {this.renderLink(`https://www.imdb.com/title/tt${imdbId}`,                                                      'IMDb',               window.devicePixelRatio < 2 ? imdbIcon16 : imdbIcon32)}
-                {this.renderLink(`https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`, 'Rotten Tomatoes',    rtIcon)}
-                {this.renderLink(`https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                 'The Movie Database', tmdbIcon)}
+                {[
+                  [ `https://www.imdb.com/title/tt${imdbId}`,                                                       'IMDb',               window.devicePixelRatio < 2 ? imdbIcon16 : imdbIcon32 ],
+                  [ `https://www.rottentomatoes.com/${season ? 'tv' : 'm'}/${rtId}${season ? `/s${season}` : ''}`,  'Rotten Tomatoes',    rtIcon ],
+                  [ `https://www.themoviedb.org/${season ? 'tv' : 'movie'}/${id}`,                                  'The Movie Database', tmdbIcon ],
+                ].map(([ href, label, icon ]) => (
+                  <a key={label} href={href} title={`Open ${label}`} target='_blank' rel='noopener noreferrer' onMouseOver={this.onButtonMouseOver} onMouseOut={this.onButtonMouseOut}>
+                    <img alt='' src={icon} />
+                  </a>
+                ))}
               </div>
               <div className='SuggestedItem_meter'>
                 <div className='SuggestedItem_meter_line' style={{ width: `${meter * 100}%` }} />
