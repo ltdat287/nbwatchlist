@@ -8,6 +8,7 @@ import {
   RedditShareButton, RedditShareCount, RedditIcon,
   VKShareButton, VKShareCount, VKIcon
 } from 'react-share';
+import humanFormat from 'human-format';
 import Pad from './Pad';
 import imdbLogo from './imdb.png';
 import rtLogo from './rt.svg';
@@ -94,7 +95,9 @@ export default class App extends PureComponent {
                   {React.createElement(button, { className: 'App_shareButton', url: appUrl }, [
                     React.createElement(icon, { key: '', size: shareButtonSize, round: true })
                   ])}
-                  {count && React.createElement(count, { className: 'App_shareCount', url: appUrl })}
+                  {count && React.createElement(count, { className: 'App_shareCount', url: appUrl },
+                    number => humanFormat(number, { decimals: 0, separator: '' })
+                  )}
                 </div>
               </div>
             ))}

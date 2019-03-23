@@ -129,12 +129,17 @@
   transition-timing-function: ease-out;
 }
 
+.App_shareButton > div {
+  margin: 0 auto;
+}
+
 .App_shareCount {
   margin-top: 2px;
   height: 10px;
 
   color: var(--color-item-muted-fg);
   font-size: 10px;
+  text-transform: uppercase;
   text-align: center;
 }
 
