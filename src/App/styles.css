@@ -5,6 +5,10 @@
   --side-banner-padding:  20px;
 }
 
+.App {
+  min-width: 1000px;
+}
+
 /* Alpha Notice */
 
 .App_alphaNotice {
@@ -90,12 +94,56 @@
   font-size: 50px;
 }
 
+/* Sharing */
+
+.App_shareButtonsRow {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 auto;
+  width: 956px;
+}
+
+.App_shareButtonBlock {
+  display: inline-block;
+  margin-right: 6px;
+  height: 100%;
+  vertical-align: top;
+}
+
+.App_shareButtonBlock:last-child {
+  margin-right: 0;
+}
+
+.App_shareButton {
+  filter: grayscale(100%) brightness(50%);
+  cursor: pointer;
+
+  transition-property: filter;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in;
+}
+
+.App_shareButton:hover {
+  filter: none;
+
+  transition-timing-function: ease-out;
+}
+
+.App_shareCount {
+  margin-top: 2px;
+  height: 10px;
+
+  color: var(--color-item-muted-fg);
+  font-size: 10px;
+  text-align: center;
+}
+
 /* Subscribe */
 
 form.App_subscribe {
   width: 600px;
   margin: 0 auto;
-  margin-top: 120px;
+  margin-top: 90px;
 
   text-align: center;
 }

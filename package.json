@@ -24,6 +24,7 @@
     "react": "16.8.4",
     "react-app-polyfill": "0.2.2",
     "react-dom": "16.8.4",
+    "react-share": "2.4.0",
     "reset-css": "4.0.1",
     "superagent": "4.1.0"
   },

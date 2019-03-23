@@ -1,10 +1,20 @@
 import React, { PureComponent } from 'react';
 import request from 'superagent';
+import {
+  TwitterShareButton, TwitterIcon,
+  WhatsappShareButton, WhatsappIcon,
+  TelegramShareButton, TelegramIcon,
+  FacebookShareButton, FacebookShareCount, FacebookIcon,
+  RedditShareButton, RedditShareCount, RedditIcon,
+  VKShareButton, VKShareCount, VKIcon
+} from 'react-share';
 import Pad from './Pad';
 import imdbLogo from './imdb.png';
 import rtLogo from './rt.svg';
 import tmdbLogo from './tmdbSquare.svg';
 import './styles.css';
+
+const appUrl = document.querySelector('meta[property="og:url"]').getAttribute('content');
 
 export default class App extends PureComponent {
 
@@ -49,6 +59,8 @@ export default class App extends PureComponent {
       );
     }
 
+    const shareButtonSize = 20;
+
     return (
       <div className='App'>
         <div className='App_alphaNotice'>an early alpha version</div>
@@ -66,6 +78,28 @@ export default class App extends PureComponent {
         </div>
 
         <h1 className='App_title'>No-Brainer Watchlist</h1>
+
+        <div className='App_shareButtonsRow'>
+          <div className='App_shareButtons'>
+            {[
+              [ 'Twitter',    TwitterShareButton,   TwitterIcon                       ],
+              [ 'Whatsapp',   WhatsappShareButton,  WhatsappIcon                      ],
+              [ 'Telegram',   TelegramShareButton,  TelegramIcon                      ],
+              [ 'Facebook',   FacebookShareButton,  FacebookIcon, FacebookShareCount  ],
+              [ 'Reddit',     RedditShareButton,    RedditIcon,   RedditShareCount    ],
+              [ 'VKontakte',  VKShareButton,        VKIcon,       VKShareCount        ]
+            ].map(([ label, button, icon, count ]) => (
+              <div key={label} className='App_shareButtonBlock'>
+                <div title={`Share on ${label}`}>
+                  {React.createElement(button, { className: 'App_shareButton', url: appUrl }, [
+                    React.createElement(icon, { key: '', size: shareButtonSize, round: true })
+                  ])}
+                  {count && React.createElement(count, { className: 'App_shareCount', url: appUrl })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
         {!this.state.hideSubscribeForm && (
           <form className='App_subscribe' onSubmit={this.onSubmit}>
