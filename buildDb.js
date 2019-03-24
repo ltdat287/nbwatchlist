@@ -322,7 +322,7 @@ async function fetchRtPage(path) {
           }
 
           return {
-            id: id,
+            id: id.toString(),
             imdbId: imdb_id.substring(2),
             rtId: rtSearchResult.url.substring(rtSearchResult.url.lastIndexOf('/') + 1),
             name: title,
@@ -332,7 +332,7 @@ async function fetchRtPage(path) {
             poster: tmdb.poster_path,
             trailerKey: videos && videos.length > 0 ? videos[0].key : undefined,
             date: release_date,
-            disc: discDate && moment().isAfter(discDate),
+            discDate: discDate,
             duration: duration,
             scores: scores
           };
@@ -420,7 +420,7 @@ async function fetchRtPage(path) {
 
             for (let s = 0; s < tmdb.seasons.length; s++) {
               const season = tmdb.seasons[s];
-              const rtPage = await fetchRtPage(rtSearchResult.url.replace('/s01', `/s${season.season_number}`));
+              const rtPage = await fetchRtPage(`${rtSearchResult.url.replace('/s01', '')}/s${season.season_number}`);
               const rtGroups = rtPage.match(/root.RottenTomatoes.context.result = (.+?});/s);
               let rt;
 
@@ -449,21 +449,21 @@ async function fetchRtPage(path) {
                   value: rt.seasonData.tvRatingSummary.averageRating
                 } : undefined,
 
-                rtAllCritics: {
+                rtAllCritics: rt.seasonData && rt.seasonData.tomatometer ? {
                   votes: rt.seasonData.tomatometer.numReviews,
                   value: rt.seasonData.tomatometer.averageScore
-                },
+                } : undefined,
 
-                rtTopCritics: {
+                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer ? {
                   votes: rt.seasonData.topTomatometer.numReviews,
                   value: parseFloat(rt.seasonData.topTomatometer.averageScore)
-                }
+                } : undefined
               };
 
               if (!scores.imdb || !scores.rtAudience || !scores.rtAllCritics || !scores.rtTopCritics
                 ||
                 scores.imdb.votes < 500 || scores.rtAudience.votes < 100 || scores.rtAllCritics.votes < 10 || scores.rtTopCritics.votes < 2) {
-                return;
+                continue;
               }
 
               let splitGenres = [];
@@ -473,11 +473,11 @@ async function fetchRtPage(path) {
               });
 
               seasonItems.push({
-                id: id,
+                id: `${id}_${season.season_number}`,
                 imdbId: imdb_id.substring(2),
                 rtId: rtSearchResult.url.replace('/tv/', '').replace('/s01', ''),
                 name: name,
-                genres: splitGenres,
+                genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
                 summary: season.overview || tmdb.overview || imdb.description,
                 //consensus: (rt.seasonData.tomatometer.consensus || '').replace(/<em>/g, '').replace(/<\/em>/g, ''),
                 poster: season.poster_path || tmdb.poster_path,

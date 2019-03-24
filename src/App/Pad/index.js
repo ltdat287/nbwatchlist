@@ -124,7 +124,7 @@ export default class Pad extends PureComponent {
   renderSuggestedItems() {
     const { columns, config } = this.state;
     const items = _(this.state.items)
-      .filter(({ season, disc }) => !config.disc || season || disc)
+      .filter(({ season, discDate }) => !config.disc || season || (discDate && moment().isAfter(discDate)))
       .filter(({ season }) => config.medium === 'all' || (config.medium === 'movie' && !season) || (config.medium === 'tv' && season))
       .filter(({ genres }) => config.genres.condition !== 'one' || config.genres.list.some(genre => genres.includes(genre)))
       .filter(({ genres }) => config.genres.condition !== 'all' || (config.genres.list.length > 0 && config.genres.list.every(genre => genres.includes(genre))))
