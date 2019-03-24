@@ -215,8 +215,6 @@
   display: inline-block;
   margin: var(--tooltip-padding) 0;
 
-  font-size: 12px;
-  line-height: 2;
   text-align: justify;
 }
 

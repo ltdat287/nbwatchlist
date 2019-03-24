@@ -162,6 +162,7 @@ export default class SuggestedItem extends PureComponent {
   render() {
     const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey } } = this.props;
     const expandedName = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
+    const tooltipTextCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300));
 
     return (
       <Fragment>
@@ -181,7 +182,12 @@ export default class SuggestedItem extends PureComponent {
                 </div>
               </div>
               <img className='SuggestedItem_tooltip_poster' alt={name} src={`https://image.tmdb.org/t/p/w${devicePixelRatio * 2}00/${poster}`} />
-              <div className='SuggestedItem_tooltip_text'>{summary}</div>
+              <div className='SuggestedItem_tooltip_text' style={{
+                fontSize: 12 - Math.round(1.0 * tooltipTextCompactingFactor * 10) / 10,
+                lineHeight: 2 - Math.round(0.7 * tooltipTextCompactingFactor * 10) / 10
+              }}>
+                {summary}
+              </div>
               <div className='SuggestedItem_tooltip_footerRow'>
                 {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
               </div>
