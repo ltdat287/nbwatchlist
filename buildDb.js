@@ -60,6 +60,12 @@ async function fetchItem(id, type) {
   });
 }
 
+async function fetchItemCredits(id, type) {
+  return fetchTmdb(`https://api.themoviedb.org/3/${type}/${id}/credits`, {
+    api_key: tmdbKey
+  });
+}
+
 async function fetchItemVideos(id, type) {
   return fetchTmdb(`https://api.themoviedb.org/3/${type}/${id}/videos`, {
     api_key: tmdbKey
@@ -155,6 +161,14 @@ async function fetchRtPage(path) {
   return result;
 }
 
+function normalizeName(name) {
+  return name.toLowerCase().replace(/[.,:\-/'"]+/g, '').replace(/[ ]+/g, ' ');
+}
+
+function areSameNames(name1, name2) {
+  return normalizeName(name1) === normalizeName(name2);
+}
+
 (async function() {
   if (!fs.existsSync('db')){
     fs.mkdirSync('db');
@@ -214,18 +228,29 @@ async function fetchRtPage(path) {
           let rtAudienceValue;
           let rtCriticsRating;
           let discDate;
-          const rtSearchResults = (await searchRt(title))
+          let rtSearchResults = await searchRt(title);
+
+          if (!rtSearchResults.movies) {
+            console.log(title, rtSearchResults);
+          }
+
+          rtSearchResults = rtSearchResults
             .movies
-            .filter(({ name }) => name === title)
+            .filter(({ name }) => areSameNames(title, name))
             .filter(({ year }) => year && (moment(release_date).year() === year || moment(release_date).year() === year - 1 || moment(release_date).year() === year + 1))
-            .filter(({ url }) => url !== '/m/null')
-            .filter(({ url }) => url.startsWith('/m/'));
+            .filter(({ url }) => url !== '/m/null');
           let rtSearchResult;
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
           } else if (rtSearchResults.length > 1) {
-            rtSearchResult = rtSearchResults.find(({ castItems }) => castItems.every(({ name }) => imdbPage.includes(name)));
+            rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
+
+            if (rtSearchResults.length === 1) {
+              rtSearchResult = rtSearchResults[0];
+            }
+          } else {
+            //console.log(title, rtSearchResults);
           }
 
           if (rtSearchResult) {
@@ -367,6 +392,7 @@ async function fetchRtPage(path) {
           }
 
           const tmdb = await fetchItem(id, 'tv');
+          const cast = (await fetchItemCredits(id, 'tv')).cast;
           const videos = (await fetchItemVideos(id, 'tv')).results;
           const { first_air_date, last_air_date } = tmdb;
 
@@ -376,17 +402,35 @@ async function fetchRtPage(path) {
           const imdbSearchResults = JSON.parse(imdbSearchResultsJsonp.substring(imdbSearchResultsJsonp.indexOf('(') + 1, imdbSearchResultsJsonp.lastIndexOf(')')));
 
           if (imdbSearchResults.d) {
-            const filteredImdbSearchResults = imdbSearchResults.d
-              .filter(({ q }) => q && q.startsWith('TV'))
-              .filter(({ l }) => l === name)
+            let filteredImdbSearchResults = imdbSearchResults.d
+              .filter(({ id }) => id.startsWith('tt'))
               .filter(({ y }) => y === moment(first_air_date).year() || y === moment(first_air_date).year() - 1 || y === moment(first_air_date).year() + 1);
 
             if (filteredImdbSearchResults.length === 1) {
               imdb_id = filteredImdbSearchResults[0].id;
+            } else {
+              filteredImdbSearchResults = filteredImdbSearchResults.filter(({ s }) => s && (cast.length === 0 || cast.some(({ name }) => s.includes(name))));
+
+              if (filteredImdbSearchResults.length === 1) {
+                imdb_id = filteredImdbSearchResults[0].id;
+              } else {
+                filteredImdbSearchResults = filteredImdbSearchResults.filter(({ q }) => !q || q.startsWith('TV'));
+
+                if (filteredImdbSearchResults.length === 1) {
+                  imdb_id = filteredImdbSearchResults[0].id;
+                } else {
+                  filteredImdbSearchResults = filteredImdbSearchResults.filter(({ l }) => l.toLowerCase() === name.toLowerCase());
+
+                  if (filteredImdbSearchResults.length === 1) {
+                    imdb_id = filteredImdbSearchResults[0].id;
+                  }
+                }
+              }
             }
           }
 
           if (!imdb_id) {
+            //console.log(name, imdbSearchResults);
             return;
           }
 
@@ -398,21 +442,29 @@ async function fetchRtPage(path) {
           }
 
           if (!imdb) {
+            //console.log(name, 'no imdb ld json');
             return;
           }
 
           // RT
-          const rtSearchResults = (await searchRt(name))
+          let rtSearchResults = await searchRt(name);
+
+          if (!rtSearchResults.tvSeries) {
+            console.log(name, rtSearchResults);
+          }
+
+          rtSearchResults = rtSearchResults
             .tvSeries
-            .filter(({ title }) => title === name)
-            .filter(({ startYear }) => startYear && (moment(first_air_date).year() === startYear || moment(first_air_date).year() === startYear - 1 || moment(first_air_date).year() === startYear + 1))
+            .filter(({ title }) => areSameNames(title, name))
+            .filter(({ startYear }) => !startYear || (moment(first_air_date).year() === startYear || moment(first_air_date).year() === startYear - 1 || moment(first_air_date).year() === startYear + 1))
             .filter(({ endYear }) => !endYear || (moment(last_air_date).year() === endYear || moment(last_air_date).year() === endYear - 1 || moment(last_air_date).year() === endYear + 1))
-            .filter(({ url }) => url !== '/tv/null')
-            .filter(({ url }) => url.startsWith('/tv/'));
+            .filter(({ url }) => url !== '/tv/null');
           let rtSearchResult;
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
+          } else {
+            //console.log(name, rtSearchResults);
           }
 
           if (rtSearchResult) {
@@ -454,7 +506,7 @@ async function fetchRtPage(path) {
                   value: rt.seasonData.tomatometer.averageScore
                 } : undefined,
 
-                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer ? {
+                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer && rt.seasonData.topTomatometer.averageScore !== null ? {
                   votes: rt.seasonData.topTomatometer.numReviews,
                   value: parseFloat(rt.seasonData.topTomatometer.averageScore)
                 } : undefined
