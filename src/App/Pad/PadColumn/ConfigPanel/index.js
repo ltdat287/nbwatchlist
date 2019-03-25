@@ -212,7 +212,7 @@ export default class ConfigPanel extends PureComponent {
             </div>
           </div>
 
-          <h2>Rating</h2>
+          <h2>Meter</h2>
 
           <div>
             <h3>Based on</h3>
@@ -229,7 +229,7 @@ export default class ConfigPanel extends PureComponent {
               </div>
             ))}
 
-            <h3>Worst Allowed Rating</h3>
+            <h3>Don't Suggest Lower Than</h3>
             <div>
               <select name='score.min' value={this.state.score.min} onChange={this.onInputChange}>
                 {this.scoreSteps().map(score => <option key={score} value={score}>{(score / 10).toFixed(1)}</option>)}
