@@ -8,6 +8,10 @@ const leftPad = require('left-pad');
 const minYear = 1900;
 const tmdbKey = '9389b4f79115a7b779250d79c568c87c';
 
+function pause() {
+  return new Promise((resolve, reject) => setTimeout(resolve, 3000));
+}
+
 async function fetchTmdb(url, query) {
   let result;
 
@@ -60,8 +64,8 @@ async function fetchItem(id, type) {
   });
 }
 
-async function fetchItemCredits(id, type) {
-  return fetchTmdb(`https://api.themoviedb.org/3/${type}/${id}/credits`, {
+async function fetchExternalIds(id, type) {
+  return fetchTmdb(`https://api.themoviedb.org/3/${type}/${id}/external_ids`, {
     api_key: tmdbKey
   });
 }
@@ -70,31 +74,6 @@ async function fetchItemVideos(id, type) {
   return fetchTmdb(`https://api.themoviedb.org/3/${type}/${id}/videos`, {
     api_key: tmdbKey
   });
-}
-
-async function searchImdb(title) {
-  const encodedTitle = title.toLowerCase().replace(/ /g, '_').replace(/[^\w]+/g, '');
-  let result;
-
-  for (let i = 0; i < 10; i++) {
-    result = await new Promise((resolve, reject) => {
-      request
-        .get(`https://v2.sg.media-imdb.com/suggests/${encodedTitle.charAt(0)}/${encodedTitle}.json`)
-        .query({
-          callback: `imdb$${encodedTitle}`,
-          _: new Date().getTime()
-        })
-        .end((err, res) => {
-          resolve(res ? res.body.toString('utf8') : '');
-        });
-    });
-
-    if (result) {
-      break;
-    }
-  }
-
-  return result;
 }
 
 async function fetchImdbPage(id) {
@@ -170,12 +149,6 @@ function areSameNames(name1, name2) {
 }
 
 (async function() {
-  if (!fs.existsSync('db')){
-    fs.mkdirSync('db');
-  }
-
-  fs.writeFileSync('db/_headers', '/*\n  Access-Control-Allow-Origin: *');
-
   let items = [];
 
   // MOVIES
@@ -191,7 +164,7 @@ function areSameNames(name1, name2) {
       const page = (await fetchItems(i, y, 'movie'));
       const promises = [];
 
-      await new Promise((resolve, reject) => setTimeout(resolve, 3000));
+      await pause();
 
       for (let j = 0; j < page.results.length; j++) {
         promises.push((async function() {
@@ -203,7 +176,7 @@ function areSameNames(name1, name2) {
 
           const tmdb = await fetchItem(id, 'movie');
           const videos = (await fetchItemVideos(id, 'movie')).results;
-          const imdb_id = tmdb.imdb_id;
+          const { imdb_id } = tmdb;
 
           // IMDB
           if (!imdb_id) {
@@ -229,28 +202,50 @@ function areSameNames(name1, name2) {
           let rtCriticsRating;
           let discDate;
           let rtSearchResults = await searchRt(title);
+          let rtSearchResult;
 
           if (!rtSearchResults.movies) {
             console.log(title, rtSearchResults);
           }
 
-          rtSearchResults = rtSearchResults
-            .movies
-            .filter(({ name }) => areSameNames(title, name))
-            .filter(({ year }) => year && (moment(release_date).year() === year || moment(release_date).year() === year - 1 || moment(release_date).year() === year + 1))
-            .filter(({ url }) => url !== '/m/null');
-          let rtSearchResult;
+          rtSearchResults = rtSearchResults.movies.filter(({ url }) => url !== '/m/null');
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
-          } else if (rtSearchResults.length > 1) {
-            rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
-
-            if (rtSearchResults.length === 1) {
-              rtSearchResult = rtSearchResults[0];
-            }
           } else {
-            //console.log(title, rtSearchResults);
+            const yearResults = rtSearchResults.filter(({ year }) => year === moment(release_date).year());
+            const castResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
+            const nameResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+
+           if (yearResults.length === 1) {
+              rtSearchResult = yearResults[0];
+            } else if (castResults.length === 1) {
+              rtSearchResult = castResults[0];
+            } else if (nameResults.length === 1) {
+              rtSearchResult = nameResults[0];
+            } else {
+              rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)))
+
+              if (rtSearchResults.length === 1) {
+                rtSearchResult = rtSearchResults[0];
+              } else {
+                rtSearchResults = rtSearchResults.filter(({ year }) => !year || [ year - 2, year - 1, year, year + 1, year + 2 ].includes(moment(release_date).year()));
+
+                if (rtSearchResults.length === 1) {
+                  rtSearchResult = rtSearchResults[0];
+                } else {
+                  rtSearchResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+
+                  if (rtSearchResults.length === 1) {
+                    rtSearchResult = rtSearchResults[0];
+                  }
+                }
+              }
+            }
+          }
+
+          if (!rtSearchResult) {
+            //console.log(title, release_date, (await searchRt(title)).movies);
           }
 
           if (rtSearchResult) {
@@ -381,7 +376,7 @@ function areSameNames(name1, name2) {
       const page = (await fetchItems(i, y, 'tv'));
       const promises = [];
 
-      await new Promise((resolve, reject) => setTimeout(resolve, 3000));
+      await pause();
 
       for (let j = 0; j < page.results.length; j++) {
         promises.push((async function() {
@@ -392,48 +387,16 @@ function areSameNames(name1, name2) {
           }
 
           const tmdb = await fetchItem(id, 'tv');
-          const cast = (await fetchItemCredits(id, 'tv')).cast;
+          const { imdb_id } = await fetchExternalIds(id, 'tv');
           const videos = (await fetchItemVideos(id, 'tv')).results;
           const { first_air_date, last_air_date } = tmdb;
 
           // IMDB
-          let imdb_id, imdb;
-          const imdbSearchResultsJsonp = await searchImdb(name);
-          const imdbSearchResults = JSON.parse(imdbSearchResultsJsonp.substring(imdbSearchResultsJsonp.indexOf('(') + 1, imdbSearchResultsJsonp.lastIndexOf(')')));
-
-          if (imdbSearchResults.d) {
-            let filteredImdbSearchResults = imdbSearchResults.d
-              .filter(({ id }) => id.startsWith('tt'))
-              .filter(({ y }) => y === moment(first_air_date).year() || y === moment(first_air_date).year() - 1 || y === moment(first_air_date).year() + 1);
-
-            if (filteredImdbSearchResults.length === 1) {
-              imdb_id = filteredImdbSearchResults[0].id;
-            } else {
-              filteredImdbSearchResults = filteredImdbSearchResults.filter(({ s }) => s && (cast.length === 0 || cast.some(({ name }) => s.includes(name))));
-
-              if (filteredImdbSearchResults.length === 1) {
-                imdb_id = filteredImdbSearchResults[0].id;
-              } else {
-                filteredImdbSearchResults = filteredImdbSearchResults.filter(({ q }) => !q || q.startsWith('TV'));
-
-                if (filteredImdbSearchResults.length === 1) {
-                  imdb_id = filteredImdbSearchResults[0].id;
-                } else {
-                  filteredImdbSearchResults = filteredImdbSearchResults.filter(({ l }) => l.toLowerCase() === name.toLowerCase());
-
-                  if (filteredImdbSearchResults.length === 1) {
-                    imdb_id = filteredImdbSearchResults[0].id;
-                  }
-                }
-              }
-            }
-          }
-
           if (!imdb_id) {
-            //console.log(name, imdbSearchResults);
             return;
           }
 
+          let imdb;
           const imdbPage = await fetchImdbPage(imdb_id);
           const imdbGroups = imdbPage.match(/<script type="application\/ld\+json">(.+?)<\/script>/s);
 
@@ -442,29 +405,55 @@ function areSameNames(name1, name2) {
           }
 
           if (!imdb) {
-            //console.log(name, 'no imdb ld json');
             return;
           }
 
           // RT
           let rtSearchResults = await searchRt(name);
+          let rtSearchResult;
 
           if (!rtSearchResults.tvSeries) {
             console.log(name, rtSearchResults);
           }
 
-          rtSearchResults = rtSearchResults
-            .tvSeries
-            .filter(({ title }) => areSameNames(title, name))
-            .filter(({ startYear }) => !startYear || (moment(first_air_date).year() === startYear || moment(first_air_date).year() === startYear - 1 || moment(first_air_date).year() === startYear + 1))
-            .filter(({ endYear }) => !endYear || (moment(last_air_date).year() === endYear || moment(last_air_date).year() === endYear - 1 || moment(last_air_date).year() === endYear + 1))
-            .filter(({ url }) => url !== '/tv/null');
-          let rtSearchResult;
+          rtSearchResults = rtSearchResults.tvSeries.filter(({ url }) => url !== '/tv/null');
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
           } else {
-            //console.log(name, rtSearchResults);
+            const startYearResults = rtSearchResults.filter(({ startYear }) => startYear === moment(first_air_date).year());
+            const endYearResults = rtSearchResults.filter(({ endYear }) => endYear === moment(last_air_date).year());
+            const nameResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+
+            if (startYearResults.length === 1) {
+              rtSearchResult = startYearResults[0];
+            } else if (endYearResults.length === 1) {
+              rtSearchResult = endYearResults[0];
+            } else if (nameResults.length === 1) {
+              rtSearchResult = nameResults[0];
+            } else {
+              rtSearchResults = rtSearchResults.filter(({ startYear }) => !startYear || [ startYear - 2, startYear - 1, startYear, startYear + 1, startYear + 2 ].includes(moment(first_air_date).year()));
+
+              if (startYearResults.length === 1) {
+                rtSearchResult = rtSearchResults[0];
+              } else {
+                rtSearchResults = rtSearchResults.filter(({ endYear }) => !endYear || [ endYear - 2, endYear - 1, endYear, endYear + 1, endYear + 2 ].includes(moment(last_air_date).year()));
+
+                if (rtSearchResults.length === 1) {
+                  rtSearchResult = rtSearchResults[0];
+                } else {
+                  rtSearchResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+
+                  if (rtSearchResults.length === 1) {
+                    rtSearchResult = rtSearchResults[0];
+                  }
+                }
+              }
+            }
+          }
+
+          if (!rtSearchResult) {
+            //console.log(name, first_air_date, last_air_date, (await searchRt(name)).tvSeries);
           }
 
           if (rtSearchResult) {
@@ -506,7 +495,7 @@ function areSameNames(name1, name2) {
                   value: rt.seasonData.tomatometer.averageScore
                 } : undefined,
 
-                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer && rt.seasonData.topTomatometer.averageScore !== null ? {
+                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer && rt.seasonData.topTomatometer.numReviews && rt.seasonData.topTomatometer.averageScore !== null ? {
                   votes: rt.seasonData.topTomatometer.numReviews,
                   value: parseFloat(rt.seasonData.topTomatometer.averageScore)
                 } : undefined
@@ -551,6 +540,12 @@ function areSameNames(name1, name2) {
       });
     }
   }
+
+  if (!fs.existsSync('db')){
+    fs.mkdirSync('db');
+  }
+
+  fs.writeFileSync('db/_headers', '/*\n  Access-Control-Allow-Origin: *');
 
   for (let y = moment().year(); y >= minYear; y--) {
     const yearItems = [];
