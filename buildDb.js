@@ -220,6 +220,13 @@ function areSameNames(name1, name2) {
             const yearResults = rtSearchResults.filter(({ year }) => year === moment(release_date).year());
             const castResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
             const nameResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+            const yearNameResults = rtSearchResults
+              .filter(({ year }) => year === moment(release_date).year())
+              .filter(({ name }) => areSameNames(title, name));
+            const yearCastNameResults = rtSearchResults
+              .filter(({ year }) => year === moment(release_date).year())
+              .filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)))
+              .filter(({ name }) => areSameNames(title, name));
 
            if (yearResults.length === 1) {
               rtSearchResult = yearResults[0];
@@ -227,8 +234,12 @@ function areSameNames(name1, name2) {
               rtSearchResult = castResults[0];
             } else if (nameResults.length === 1) {
               rtSearchResult = nameResults[0];
+           } else if (yearNameResults.length === 1) {
+             rtSearchResult = yearNameResults[0];
+           } else if ([ 1, 2 ].includes(yearCastNameResults.length)) {
+             rtSearchResult = yearCastNameResults[0];
             } else {
-              rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)))
+              rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)));
 
               if (rtSearchResults.length === 1) {
                 rtSearchResult = rtSearchResults[0];
@@ -428,6 +439,9 @@ function areSameNames(name1, name2) {
             const startYearResults = rtSearchResults.filter(({ startYear }) => startYear === moment(first_air_date).year());
             const endYearResults = rtSearchResults.filter(({ endYear }) => endYear === moment(last_air_date).year());
             const nameResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+            const startYearNameResults = rtSearchResults
+              .filter(({ startYear }) => startYear === moment(first_air_date).year())
+              .filter(({ title }) => areSameNames(title, name));
 
             if (startYearResults.length === 1) {
               rtSearchResult = startYearResults[0];
@@ -435,6 +449,8 @@ function areSameNames(name1, name2) {
               rtSearchResult = endYearResults[0];
             } else if (nameResults.length === 1) {
               rtSearchResult = nameResults[0];
+            } else if ([ 1, 2 ].includes(startYearNameResults.length)) {
+              rtSearchResult = startYearNameResults[0];
             } else {
               rtSearchResults = rtSearchResults.filter(({ startYear }) => !startYear || [ startYear - 2, startYear - 1, startYear, startYear + 1, startYear + 2 ].includes(moment(first_air_date).year()));
 
