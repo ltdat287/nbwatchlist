@@ -15,7 +15,7 @@ import rtLogo from './rt.svg';
 import tmdbLogo from './tmdbSquare.svg';
 import './styles.css';
 
-const appUrl = document.querySelector('meta[property="og:url"]').getAttribute('content');
+const appUrl = document.querySelector('link[rel="canonical"]').getAttribute('href');
 
 export default class App extends PureComponent {
 
