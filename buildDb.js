@@ -112,6 +112,10 @@ async function searchRt(title) {
         });
     });
 
+    if (Object.keys(result).length === 0) {
+      continue;
+    }
+
     if (result) {
       break;
     }
