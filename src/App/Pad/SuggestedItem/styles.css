@@ -2,7 +2,9 @@
 
 :root {
   --tooltip-padding: 16px;
-  --links-width: 83px;
+  --default-links-width: 83px;
+  --default-title-width: calc(var(--column-width) - var(--item-padding) * 2 - var(--default-links-width) - var(--tooltip-padding));
+  --rt-link-width: 21px;
 }
 
 .SuggestedItem {
@@ -17,6 +19,8 @@
   margin-bottom: 0;
 }
 
+/* Item > Box */
+
 .SuggestedItem_box {
   margin: calc(var(--item-padding) + 1px) var(--item-padding);
 }
@@ -25,6 +29,8 @@
   position: relative;
   bottom: 8px;
 }
+
+/* Item > Title */
 
 .SuggestedItem_title {
   position: relative;
@@ -51,19 +57,29 @@
 }
 
 .SuggestedItem.hover .SuggestedItem_title {
-  width: calc(var(--column-width) - var(--item-padding) * 2 - var(--links-width) - var(--tooltip-padding));
+  width: var(--default-title-width);
   margin-right: var(--tooltip-padding);
 }
+
+.SuggestedItem.hover.noRt .SuggestedItem_title {
+  width: calc(var(--default-title-width) + var(--rt-link-width));
+}
+
+/* Item > Links */
 
 .SuggestedItem_links {
   display: none;
   position: relative;
   bottom: 7px;
-  width: var(--links-width);
+  width: var(--default-links-width);
 }
 
 .SuggestedItem.hover .SuggestedItem_links {
   display: inline-block;
+}
+
+.SuggestedItem.hover.noRt .SuggestedItem_links {
+  width: calc(var(--default-links-width) - var(--rt-link-width));
 }
 
 .SuggestedItem.hover.safari .SuggestedItem_links {
@@ -78,6 +94,10 @@
 
 .SuggestedItem_links > *:last-child {
   margin-right: 0;
+}
+
+.SuggestedItem.noRt a[href*=rottentomatoes] {
+  display: none;
 }
 
 .SuggestedItem_links img {
@@ -96,9 +116,11 @@
   height: 21px;
 }
 
-.SuggestedItem_links img.youtube.unavailable {
+.SuggestedItem.noTrailer img.youtube {
   visibility: hidden;
 }
+
+/* Item > Meter */
 
 .SuggestedItem_meter {
   height: 4px;
@@ -167,6 +189,10 @@
 
 .SuggestedItem_tooltip_scores_origin:last-child {
   margin-bottom: 0;
+}
+
+.SuggestedItem_tooltip_scores_origin.hidden {
+  visibility: hidden;
 }
 
 .SuggestedItem_tooltip_scores_logo {

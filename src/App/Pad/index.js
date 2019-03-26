@@ -128,7 +128,7 @@ export default class Pad extends PureComponent {
       .filter(({ season }) => config.medium === 'all' || (config.medium === 'movie' && !season) || (config.medium === 'tv' && season))
       .filter(({ genres }) => config.genres.condition !== 'one' || config.genres.list.some(genre => genres.includes(genre)))
       .filter(({ genres }) => config.genres.condition !== 'all' || (config.genres.list.length > 0 && config.genres.list.every(genre => genres.includes(genre))))
-      .filter(({ scores }) => scores[config.score.origin].value * 10 >= config.score.min)
+      .filter(({ scores }) => scores[config.score.origin] && scores[config.score.origin].value * 10 >= config.score.min)
       .filter(({ date }) => yearOf(date) >= config.year.min && yearOf(date) <= parseMaxYear(config.year.max))
       .filter(({ id }) => !columns.picked.some(columnItem => columnItem.id === id))
       .filter(({ id }) => !columns.watched.some(columnItem => columnItem.id === id));
@@ -208,7 +208,7 @@ export default class Pad extends PureComponent {
           >
             {_(this.state.items)
               .filter(({ id }) => this.state.columns.picked.some(columnItem => columnItem.id === id))
-              .sortBy(({ scores }) => scores[this.state.config.score.origin].value)
+              .sortBy(({ scores }) => (scores[this.state.config.score.origin] || { value: 0 }).value)
               .reverse()
               .map(item => <PickedItem key={item.id} item={item} />)
               .value()}

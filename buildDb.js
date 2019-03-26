@@ -259,10 +259,6 @@ function areSameNames(name1, name2) {
             }
           }
 
-          if (!rtSearchResult) {
-            //console.log(title, release_date, (await searchRt(title)).movies);
-          }
-
           if (rtSearchResult) {
             const rtPage = await fetchRtPage(rtSearchResult.url);
             const onDiscDateGroups = rtPage
@@ -279,21 +275,23 @@ function areSameNames(name1, name2) {
               rt = rtGroups[1];
             }*/
 
-            const rtAudienceVotesGroups = rtPage
-              .substring(rtPage.indexOf('Audience Score'), rtPage.indexOf('</section>', rtPage.indexOf('Audience Score')))
-              .match(/<small.*?>(.+?)<\/small>/s);
+            const rtAudienceVotesText = rtPage.substring(rtPage.indexOf('Audience Score'), rtPage.indexOf('</section>', rtPage.indexOf('Audience Score')));
 
-            if (rtAudienceVotesGroups && rtAudienceVotesGroups.length > 1) {
-              rtAudienceVotes = rtAudienceVotesGroups[1].replace(/,/g, '');
-            }
+            if (!rtAudienceVotesText.includes('Not Yet Available')) {
+              const rtAudienceVotesGroups = rtAudienceVotesText.match(/<small.*?>(.+?)<\/small>/s);
 
-            const rtAudienceValuePosition = rtPage.indexOf('Average Rating:', rtPage.indexOf('AUDIENCE SCORE'));
-            const rtAudienceValueGroups = rtPage
-              .substring(rtAudienceValuePosition, rtPage.indexOf('</div>', rtAudienceValuePosition))
-              .match(/<span.*?>(.+?)\/5.+?<\/span>/s);
+              if (rtAudienceVotesGroups && rtAudienceVotesGroups.length > 1) {
+                rtAudienceVotes = rtAudienceVotesGroups[1].replace(/,/g, '');
+              }
 
-            if (rtAudienceValueGroups && rtAudienceValueGroups.length > 1) {
-              rtAudienceValue = rtAudienceValueGroups[1];
+              const rtAudienceValuePosition = rtPage.indexOf('Average Rating:', rtPage.indexOf('AUDIENCE SCORE'));
+              const rtAudienceValueGroups = rtPage
+                .substring(rtAudienceValuePosition, rtPage.indexOf('</div>', rtAudienceValuePosition))
+                .match(/<span.*?>(.+?)\/5.+?<\/span>/s);
+
+              if (rtAudienceValueGroups && rtAudienceValueGroups.length > 1) {
+                rtAudienceValue = rtAudienceValueGroups[1];
+              }
             }
 
             const rtCriticsRatingGroups = rtPage.match(/root.RottenTomatoes.context.scoreInfo = (.+?});/s);
@@ -301,10 +299,6 @@ function areSameNames(name1, name2) {
             if (rtCriticsRatingGroups && rtCriticsRatingGroups.length > 1) {
               rtCriticsRating = JSON.parse(rtCriticsRatingGroups[1]);
             }
-          }
-
-          if (!rtAudienceVotes || !rtAudienceValue || !rtCriticsRating) {
-            return;
           }
 
           // scores
@@ -319,25 +313,29 @@ function areSameNames(name1, name2) {
               value: parseFloat(imdb.aggregateRating.ratingValue)
             } : undefined,
 
-            rtAudience: {
+            rtAudience: rtAudienceVotes ? {
               votes: parseInt(rtAudienceVotes),
               value: parseFloat(rtAudienceValue)
-            },
+            } : undefined,
 
-            rtAllCritics: {
+            rtAllCritics: rtCriticsRating ? {
               votes: rtCriticsRating.tomatometerAllCritics.numberOfReviews,
               value: rtCriticsRating.tomatometerAllCritics.avgScore
-            },
+            } : undefined,
 
-            rtTopCritics: {
+            rtTopCritics: rtCriticsRating ? {
               votes: rtCriticsRating.tomatometerTopCritics.numberOfReviews,
               value: rtCriticsRating.tomatometerTopCritics.avgScore
-            }
+            } : undefined
           };
 
-          if (!scores.imdb || !scores.rtAudience || !scores.rtAllCritics || !scores.rtTopCritics
+          if (!scores.imdb || scores.imdb.votes < 500
             ||
-            scores.imdb.votes < 500 || scores.rtAudience.votes < 100 || scores.rtAllCritics.votes < 10 || scores.rtTopCritics.votes < 2) {
+            scores.rtAudience && scores.rtAudience.votes < 100
+            ||
+            scores.rtAllCritics && scores.rtAllCritics.votes < 10
+            ||
+            scores.rtTopCritics && scores.rtTopCritics.votes < 2) {
             return;
           }
 
@@ -359,7 +357,7 @@ function areSameNames(name1, name2) {
           return {
             id: id.toString(),
             imdbId: imdb_id.substring(2),
-            rtId: rtSearchResult.url.substring(rtSearchResult.url.lastIndexOf('/') + 1),
+            rtId: rtSearchResult ? rtSearchResult.url.substring(rtSearchResult.url.lastIndexOf('/') + 1) : undefined,
             name: title,
             genres: tmdb.genres.map(({ name }) => name).map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
             summary: tmdb.overview || imdb.description,
@@ -472,86 +470,83 @@ function areSameNames(name1, name2) {
             }
           }
 
-          if (!rtSearchResult) {
-            //console.log(name, first_air_date, last_air_date, (await searchRt(name)).tvSeries);
-          }
+          const seasonItems = [];
 
-          if (rtSearchResult) {
-            const seasonItems = [];
+          for (let s = 0; s < tmdb.seasons.length; s++) {
+            let rt;
+            const season = tmdb.seasons[s];
 
-            for (let s = 0; s < tmdb.seasons.length; s++) {
-              const season = tmdb.seasons[s];
+            if (rtSearchResult) {
               const rtPage = await fetchRtPage(`${rtSearchResult.url.replace('/s01', '')}/s${season.season_number}`);
               const rtGroups = rtPage.match(/root.RottenTomatoes.context.result = (.+?});/s);
-              let rt;
 
               if (rtGroups && rtGroups.length > 1) {
                 rt = JSON.parse(rtGroups[1]);
               }
-
-              if (!rt) {
-                continue;
-              }
-
-              // scores
-              const scores = {
-                /*tmdb: tmdb.vote_average > 0 ? {
-                  votes: tmdb.vote_count,
-                  value: tmdb.vote_average
-                } : undefined,*/
-
-                imdb: imdb.aggregateRating && parseFloat(imdb.aggregateRating.ratingValue) > 0 ? {
-                  votes: imdb.aggregateRating.ratingCount,
-                  value: parseFloat(imdb.aggregateRating.ratingValue)
-                } : undefined,
-
-                rtAudience: rt.seasonData && rt.seasonData.tvRatingSummary ? {
-                  votes: rt.seasonData.tvRatingSummary.numReviews,
-                  value: rt.seasonData.tvRatingSummary.averageRating
-                } : undefined,
-
-                rtAllCritics: rt.seasonData && rt.seasonData.tomatometer ? {
-                  votes: rt.seasonData.tomatometer.numReviews,
-                  value: rt.seasonData.tomatometer.averageScore
-                } : undefined,
-
-                rtTopCritics: rt.seasonData && rt.seasonData.topTomatometer && rt.seasonData.topTomatometer.numReviews && rt.seasonData.topTomatometer.averageScore !== null ? {
-                  votes: rt.seasonData.topTomatometer.numReviews,
-                  value: parseFloat(rt.seasonData.topTomatometer.averageScore)
-                } : undefined
-              };
-
-              if (!scores.imdb || !scores.rtAudience || !scores.rtAllCritics || !scores.rtTopCritics
-                ||
-                scores.imdb.votes < 500 || scores.rtAudience.votes < 100 || scores.rtAllCritics.votes < 10 || scores.rtTopCritics.votes < 2) {
-                continue;
-              }
-
-              let splitGenres = [];
-
-              tmdb.genres.forEach(({ name }) => {
-                splitGenres = splitGenres.concat(name.split(' & '));
-              });
-
-              seasonItems.push({
-                id: `${id}_${season.season_number}`,
-                imdbId: imdb_id.substring(2),
-                rtId: rtSearchResult.url.replace('/tv/', '').replace('/s01', ''),
-                name: name,
-                genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
-                summary: season.overview || tmdb.overview || imdb.description,
-                //consensus: (rt.seasonData.tomatometer.consensus || '').replace(/<em>/g, '').replace(/<\/em>/g, ''),
-                poster: season.poster_path || tmdb.poster_path,
-                trailerKey: videos && videos.length > 0 ? videos[0].key : undefined,
-                date: season.air_date,
-                season: season.season_number,
-                episodes: season.episode_count,
-                scores: scores
-              });
             }
 
-            return seasonItems;
+            // scores
+            const scores = {
+              /*tmdb: tmdb.vote_average > 0 ? {
+                votes: tmdb.vote_count,
+                value: tmdb.vote_average
+              } : undefined,*/
+
+              imdb: imdb.aggregateRating && parseFloat(imdb.aggregateRating.ratingValue) > 0 ? {
+                votes: imdb.aggregateRating.ratingCount,
+                value: parseFloat(imdb.aggregateRating.ratingValue)
+              } : undefined,
+
+              rtAudience: rt && rt.seasonData && rt.seasonData.tvRatingSummary ? {
+                votes: rt.seasonData.tvRatingSummary.numReviews,
+                value: rt.seasonData.tvRatingSummary.averageRating
+              } : undefined,
+
+              rtAllCritics: rt && rt.seasonData && rt.seasonData.tomatometer ? {
+                votes: rt.seasonData.tomatometer.numReviews,
+                value: rt.seasonData.tomatometer.averageScore
+              } : undefined,
+
+              rtTopCritics: rt && rt.seasonData && rt.seasonData.topTomatometer && rt.seasonData.topTomatometer.numReviews && rt.seasonData.topTomatometer.averageScore !== null ? {
+                votes: rt.seasonData.topTomatometer.numReviews,
+                value: parseFloat(rt.seasonData.topTomatometer.averageScore)
+              } : undefined
+            };
+
+            if (!scores.imdb || scores.imdb.votes < 500
+              ||
+              scores.rtAudience && scores.rtAudience.votes < 100
+              ||
+              scores.rtAllCritics && scores.rtAllCritics.votes < 10
+              ||
+              scores.rtTopCritics && scores.rtTopCritics.votes < 2) {
+              continue;
+            }
+
+            let splitGenres = [];
+
+            tmdb.genres.forEach(({ name }) => {
+              splitGenres = splitGenres.concat(name.split(' & '));
+            });
+
+            seasonItems.push({
+              id: `${id}_${season.season_number}`,
+              imdbId: imdb_id.substring(2),
+              rtId: rtSearchResult ? rtSearchResult.url.replace('/tv/', '').replace('/s01', '') : undefined,
+              name: name,
+              genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
+              summary: season.overview || tmdb.overview || imdb.description,
+              //consensus: (rt.seasonData.tomatometer.consensus || '').replace(/<em>/g, '').replace(/<\/em>/g, ''),
+              poster: season.poster_path || tmdb.poster_path,
+              trailerKey: videos && videos.length > 0 ? videos[0].key : undefined,
+              date: season.air_date,
+              season: season.season_number,
+              episodes: season.episode_count,
+              scores: scores
+            });
           }
+
+          return seasonItems;
         })());
       }
 

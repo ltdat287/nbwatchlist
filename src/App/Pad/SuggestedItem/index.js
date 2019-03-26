@@ -85,7 +85,7 @@ export default class SuggestedItem extends PureComponent {
   hideTooltip = () => {
     clearTimeout(this.tooltipTimeoutId);
     this.setState({ tooltip: null });
-  }
+  };
 
   onItemDragStart = () => {
     if (this.state.tooltip) {
@@ -149,18 +149,8 @@ export default class SuggestedItem extends PureComponent {
     this.setState({ tooltip: { point: point, yOffset: yOffset, aligned: true } });
   };
 
-  renderTooltipScoreNumber(name, origin) {
-    return (
-      <div className='SuggestedItem_tooltip_scores_score'>
-        {name && <div className='SuggestedItem_tooltip_scores_score_name'>{name}</div>}
-        <div className='SuggestedItem_tooltip_scores_score_number'>{this.props.item.scores[origin].value.toFixed(1)}</div>
-        <div className='SuggestedItem_tooltip_scores_score_votes'>{this.props.item.scores[origin].votes}</div>
-      </div>
-    );
-  }
-
   render() {
-    const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey } } = this.props;
+    const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey, scores } } = this.props;
     const expandedName = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
     const tooltipTextCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300));
 
@@ -170,16 +160,27 @@ export default class SuggestedItem extends PureComponent {
           <Align align={{ points: [ `${this.state.tooltip.point}l`, 'cr' ], offset: [ 20, this.state.tooltip.yOffset ] }} onAlign={this.onTooltipAlign} target={this.getRef}>
             <div className={classNames('SuggestedItem_tooltip', this.state.tooltip.point, { aligned: this.state.tooltip.aligned })}>
               <div className='SuggestedItem_tooltip_scores'>
-                <div className='SuggestedItem_tooltip_scores_origin'>
-                  <img className='SuggestedItem_tooltip_scores_logo' alt='IMDb' src={imdbLogo} />
-                  {this.renderTooltipScoreNumber('', 'imdb')}
-                </div>
-                <div className='SuggestedItem_tooltip_scores_origin'>
-                  <img className='SuggestedItem_tooltip_scores_logo' alt='RT' src={rtLogo} />
-                  {this.renderTooltipScoreNumber('Audience', 'rtAudience')}
-                  {this.renderTooltipScoreNumber('All Critics', 'rtAllCritics')}
-                  {this.renderTooltipScoreNumber('Top Critics', 'rtTopCritics')}
-                </div>
+                {[
+                  [ imdbLogo, [
+                    [ '', 'imdb' ]
+                  ] ],
+                  [ rtLogo, [
+                    [ 'Audience',     'rtAudience'    ],
+                    [ 'All Critics',  'rtAllCritics'  ],
+                    [ 'Top Critics',  'rtTopCritics'  ]
+                  ] ],
+                ].map(([ logo, scoreRows ]) => (
+                  <div className={classNames('SuggestedItem_tooltip_scores_origin', { hidden: scoreRows.every(([ _, key ]) => !scores[key]) })}>
+                    <img className='SuggestedItem_tooltip_scores_logo' alt='' src={logo} />
+                    {scoreRows.filter(([ _, key ]) => scores[key]).map(([ name, key ]) => (
+                      <div className='SuggestedItem_tooltip_scores_score'>
+                        {name && <div className='SuggestedItem_tooltip_scores_score_name'>{name}</div>}
+                        <div className='SuggestedItem_tooltip_scores_score_number'>{scores[key].value.toFixed(1)}</div>
+                        <div className='SuggestedItem_tooltip_scores_score_votes'>{scores[key].votes}</div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
               </div>
               <img className='SuggestedItem_tooltip_poster' alt={name} src={`https://image.tmdb.org/t/p/w${devicePixelRatio * 2}00/${poster}`} />
               <div className='SuggestedItem_tooltip_text' style={{
@@ -198,7 +199,13 @@ export default class SuggestedItem extends PureComponent {
             </div>
           </Align>
         )}
-        <Item className={classNames('SuggestedItem', { hover: this.state.tooltip, safari: navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome') })}
+        <Item
+          className={classNames('SuggestedItem', {
+            hover: this.state.tooltip,
+            noRt: !rtId,
+            noTrailer: !trailerKey,
+            safari: navigator.userAgent.includes('Safari') && !navigator.userAgent.includes('Chrome')
+          })}
           type='suggested'
           id={id}
           draggingDisabled={this.state.mouseOverButton}
@@ -216,7 +223,7 @@ export default class SuggestedItem extends PureComponent {
                 <img
                   alt=''
                   title='Show Trailer'
-                  className={classNames('youtube', { unavailable: !trailerKey })}
+                  className='youtube'
                   src={youtubeIcon}
                   onClick={this.onTrailerButtonPress}
                   onMouseOver={this.onButtonMouseOver}
