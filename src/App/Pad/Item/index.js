@@ -9,7 +9,7 @@ export default class Item extends PureComponent {
   static propTypes = {
     className: PropTypes.string.isRequired,
     type: PropTypes.oneOf([ 'suggested', 'picked', 'watched' ]).isRequired,
-    id: PropTypes.number.isRequired,
+    id: PropTypes.string.isRequired,
     draggingDisabled: PropTypes.bool,
     onRef: PropTypes.func,
     onMouseOver: PropTypes.func,
