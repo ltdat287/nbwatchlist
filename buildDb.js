@@ -113,6 +113,8 @@ async function searchRt(title) {
     });
 
     if (Object.keys(result).length === 0) {
+      console.log(result);
+      await new Promise((resolve, reject) => setTimeout(resolve, 5000));
       continue;
     }
 
