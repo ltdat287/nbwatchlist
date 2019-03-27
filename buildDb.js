@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
 const request = require('superagent');
+const _ = require('lodash');
 const fs = require('fs');
 const moment = require('moment');
 const leftPad = require('left-pad');
+const zeroFill = require('zero-fill');
+const htmlParser = require('node-html-parser');
 
 const minYear = 1900;
 const tmdbKey = '9389b4f79115a7b779250d79c568c87c';
@@ -206,15 +209,17 @@ function areSameNames(name1, name2) {
           let rtAudienceVotes;
           let rtAudienceValue;
           let rtCriticsRating;
+          let rtTopCriticsReviews;
           let discDate;
           let rtSearchResults = await searchRt(title);
           let rtSearchResult;
 
-          if (!rtSearchResults.movies) {
+          if (rtSearchResults.movies) {
+            rtSearchResults = rtSearchResults.movies.filter(({ url }) => url !== '/m/null');
+          } else {
             console.log(title, rtSearchResults);
+            rtSearchResults = [];
           }
-
-          rtSearchResults = rtSearchResults.movies.filter(({ url }) => url !== '/m/null');
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
@@ -230,16 +235,16 @@ function areSameNames(name1, name2) {
               .filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)))
               .filter(({ name }) => areSameNames(title, name));
 
-           if (yearResults.length === 1) {
+            if (yearResults.length === 1) {
               rtSearchResult = yearResults[0];
             } else if (castResults.length === 1) {
               rtSearchResult = castResults[0];
             } else if (nameResults.length === 1) {
               rtSearchResult = nameResults[0];
-           } else if (yearNameResults.length === 1) {
-             rtSearchResult = yearNameResults[0];
-           } else if ([ 1, 2 ].includes(yearCastNameResults.length)) {
-             rtSearchResult = yearCastNameResults[0];
+            } else if (yearNameResults.length === 1) {
+              rtSearchResult = yearNameResults[0];
+            } else if ([ 1, 2 ].includes(yearCastNameResults.length)) {
+              rtSearchResult = yearCastNameResults[0];
             } else {
               rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)));
 
@@ -301,6 +306,20 @@ function areSameNames(name1, name2) {
             if (rtCriticsRatingGroups && rtCriticsRatingGroups.length > 1) {
               rtCriticsRating = JSON.parse(rtCriticsRatingGroups[1]);
             }
+
+            const rtTopCriticsReviewsPage = await fetchRtPage(`${rtSearchResult.url}/reviews/?type=top_critics`);
+            const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
+              rtTopCriticsReviewsPage.indexOf('<section id="content"'),
+              rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
+            const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
+              text: row.querySelector('.the_review').text,
+              positive: !row.querySelector('.rotten')
+            }));
+
+            rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
+              .take(2)
+              .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
+              .value();
           }
 
           // scores
@@ -356,20 +375,27 @@ function areSameNames(name1, name2) {
             }
           }
 
+          let consensus = '';
+
+          if (rtCriticsRating && rtCriticsRating.tomatometerAllCritics && rtCriticsRating.tomatometerAllCritics.consensus) {
+            consensus = rtCriticsRating.tomatometerAllCritics.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
+          }
+
           return {
             id: id.toString(),
             imdbId: imdb_id.substring(2),
             rtId: rtSearchResult ? rtSearchResult.url.substring(rtSearchResult.url.lastIndexOf('/') + 1) : undefined,
             name: title,
             genres: tmdb.genres.map(({ name }) => name).map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
-            summary: tmdb.overview || imdb.description,
-            //consensus: (rtCriticsRating.tomatometerAllCritics.consensus || '').replace(/<em>/g, '').replace(/<\/em>/g, ''),
+            summary: (tmdb.overview || imdb.description).replace(/&amp;/g, '&'),
             poster: tmdb.poster_path,
             trailerKey: videos && videos.length > 0 ? videos[0].key : undefined,
             date: release_date,
             discDate: discDate,
             duration: duration,
-            scores: scores
+            scores: scores,
+            critics: rtTopCriticsReviews || [],
+            consensus: consensus
           };
         })());
       }
@@ -427,11 +453,12 @@ function areSameNames(name1, name2) {
           let rtSearchResults = await searchRt(name);
           let rtSearchResult;
 
-          if (!rtSearchResults.tvSeries) {
+          if (rtSearchResults.tvSeries) {
+            rtSearchResults = rtSearchResults.tvSeries.filter(({ url }) => url !== '/tv/null');
+          } else {
             console.log(name, rtSearchResults);
+            rtSearchResults = [];
           }
-
-          rtSearchResults = rtSearchResults.tvSeries.filter(({ url }) => url !== '/tv/null');
 
           if (rtSearchResults.length === 1) {
             rtSearchResult = rtSearchResults[0];
@@ -476,15 +503,31 @@ function areSameNames(name1, name2) {
 
           for (let s = 0; s < tmdb.seasons.length; s++) {
             let rt;
+            let rtTopCriticsReviews;
             const season = tmdb.seasons[s];
 
             if (rtSearchResult) {
-              const rtPage = await fetchRtPage(`${rtSearchResult.url.replace('/s01', '')}/s${season.season_number}`);
+              const seasonUrl = `${rtSearchResult.url.replace('/s01', '')}/s${zeroFill(2, season.season_number)}`;
+              const rtPage = await fetchRtPage(seasonUrl);
               const rtGroups = rtPage.match(/root.RottenTomatoes.context.result = (.+?});/s);
 
               if (rtGroups && rtGroups.length > 1) {
                 rt = JSON.parse(rtGroups[1]);
               }
+
+              const rtTopCriticsReviewsPage = await fetchRtPage(`${seasonUrl}/reviews/?type=top_critics`);
+              const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
+                rtTopCriticsReviewsPage.indexOf('<section id="content"'),
+                rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
+              const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
+                text: row.querySelector('.the_review').text,
+                positive: !row.querySelector('.rotten')
+              }));
+
+              rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
+                .take(2)
+                .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
+                .value();
             }
 
             // scores
@@ -531,20 +574,27 @@ function areSameNames(name1, name2) {
               splitGenres = splitGenres.concat(name.split(' & '));
             });
 
+            let consensus = '';
+
+            if (rt && rt.seasonData && rt.seasonData.tomatometer && rt.seasonData.tomatometer.consensus) {
+              consensus = rt.seasonData.tomatometer.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
+            }
+
             seasonItems.push({
               id: `${id}_${season.season_number}`,
               imdbId: imdb_id.substring(2),
               rtId: rtSearchResult ? rtSearchResult.url.replace('/tv/', '').replace('/s01', '') : undefined,
               name: name,
               genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
-              summary: season.overview || tmdb.overview || imdb.description,
-              //consensus: (rt.seasonData.tomatometer.consensus || '').replace(/<em>/g, '').replace(/<\/em>/g, ''),
+              summary: (season.overview || tmdb.overview || imdb.description).replace(/&amp;/g, '&'),
               poster: season.poster_path || tmdb.poster_path,
               trailerKey: videos && videos.length > 0 ? videos[0].key : undefined,
               date: season.air_date,
               season: season.season_number,
               episodes: season.episode_count,
-              scores: scores
+              scores: scores,
+              critics: rtTopCriticsReviews || [],
+              consensus: consensus
             });
           }
 
