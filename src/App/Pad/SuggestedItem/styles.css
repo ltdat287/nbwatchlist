@@ -35,8 +35,9 @@
 .SuggestedItem_title {
   position: relative;
   display: inline-block;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
   width: calc(var(--column-width) - var(--item-padding) * 2);
+  height: 15px;
 
   font-size: 14px;
   font-weight: normal;
