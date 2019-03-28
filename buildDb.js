@@ -430,7 +430,11 @@ function areSameNames(name1, name2) {
           const tmdb = await fetchItem(id, 'tv');
           const { imdb_id } = await fetchExternalIds(id, 'tv');
           const videos = (await fetchItemVideos(id, 'tv')).results;
-          const { first_air_date, last_air_date } = tmdb;
+          const { first_air_date, last_air_date, seasons } = tmdb;
+
+          if (!seasons) {
+            return;
+          }
 
           // IMDB
           if (!imdb_id) {
@@ -501,10 +505,10 @@ function areSameNames(name1, name2) {
 
           const seasonItems = [];
 
-          for (let s = 0; s < tmdb.seasons.length; s++) {
+          for (let s = 0; s < seasons.length; s++) {
             let rt;
             let rtTopCriticsReviews;
-            const season = tmdb.seasons[s];
+            const season = seasons[s];
 
             if (rtSearchResult) {
               const seasonUrl = `${rtSearchResult.url.replace('/s01', '')}/s${zeroFill(2, season.season_number)}`;
