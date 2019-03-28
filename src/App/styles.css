@@ -171,7 +171,6 @@ form.App_subscribe input {
   font-family: var(--font-text);
   font-size: 16px;
   border: none;
-  outline: none;
 
   transition-timing-function: ease-in;
 }
@@ -198,7 +197,6 @@ form.App_subscribe button[type=submit] {
   font-weight: bold;
   text-transform: uppercase;
   border: none;
-  outline: none;
   cursor: pointer;
 
   transition-property: filter;
@@ -229,7 +227,6 @@ form.App_subscribe button[type=button] {
   background-color: transparent;
   text-decoration: underline;
   border: none;
-  outline: none;
 
   transition-property: color;
   transition-duration: 0.05s;
@@ -237,7 +234,6 @@ form.App_subscribe button[type=button] {
 }
 
 form.App_subscribe button[type=button]:hover {
-  color: var(--color-item-fg);
   cursor: pointer;
 
   transition-timing-function: ease-out;
