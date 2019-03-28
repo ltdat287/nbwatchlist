@@ -222,7 +222,7 @@ export default class Pad extends PureComponent {
                 <div>&nbsp;</div>
                 <div>&nbsp;</div>
                 <div>&nbsp;</div>
-                <div>...or here</div>
+                <div>...then here</div>
               </PadColumnPlaceholder>
             )}
           >
