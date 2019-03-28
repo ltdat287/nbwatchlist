@@ -203,11 +203,11 @@ export default class SuggestedItem extends PureComponent {
               [ 'Positive Critique', critics.filter(({ positive }) => positive) ],
               [ 'Negative Critique', critics.filter(({ positive }) => !positive) ]
             ].map(([ title, items ]) => (
-              <Fragment key={title}>
+              <div key={title} className='SuggestedItem_tooltip_critique_section'>
                 <h3>{title}</h3>
                 {items.length === 0 && <div className='SuggestedItem_tooltip_critique_text'>Nothing yet</div>}
                 {items.map(({ text }, i) => <div key={i} className='SuggestedItem_tooltip_critique_text'>{text}</div>)}
-              </Fragment>
+              </div>
             ))}
           </div>
         ) : (
