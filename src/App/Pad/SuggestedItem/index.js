@@ -16,9 +16,24 @@ import tmdbIcon from '../../tmdbSquare.svg';
 import './styles.css';
 
 let mouseMoveEvent;
+let modifierKeyPressed = false;
+
+function hasModifier({ metaKey, altKey, ctrlKey, shiftKey }) {
+  return metaKey || altKey || ctrlKey || shiftKey;
+}
 
 window.addEventListener('mousemove', e => {
   mouseMoveEvent = e;
+});
+
+window.addEventListener('keydown', e => {
+  modifierKeyPressed = hasModifier(e);
+});
+
+[ 'keyup', 'blur' ].forEach(event => {
+  window.addEventListener(event, () => {
+    modifierKeyPressed = false;
+  });
 });
 
 export default class SuggestedItem extends PureComponent {
@@ -39,6 +54,9 @@ export default class SuggestedItem extends PureComponent {
   subscriptions = [];
 
   componentDidMount() {
+    window.addEventListener('blur', this.onBlur);
+    window.addEventListener('keydown', this.onKeyDown);
+    window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('scroll', this.onScroll);
 
     this.subscriptions = [
@@ -48,11 +66,30 @@ export default class SuggestedItem extends PureComponent {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('blur', this.onBlur);
+    window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('scroll', this.onScroll);
 
     this.subscriptions.forEach(s => s.remove());
     clearTimeout(this.tooltipTimeoutId);
   }
+
+  onBlur = () => {
+    this.hideTooltipIfNeeded();
+  };
+
+  onKeyDown = e => {
+    if (this.state.tooltip && hasModifier(e)) {
+      this.setState({ tooltip: { ...this.state.tooltip, showCritique: true } });
+    }
+  };
+
+  onKeyUp = () => {
+    if (this.state.tooltip) {
+      this.setState({ tooltip: { ...this.state.tooltip, showCritique: false } });
+    }
+  };
 
   onScroll = () => {
     if (mouseMoveEvent) {
@@ -82,20 +119,24 @@ export default class SuggestedItem extends PureComponent {
     return false;
   }
 
-  hideTooltip = () => {
-    clearTimeout(this.tooltipTimeoutId);
-    this.setState({ tooltip: null });
-  };
+  hideTooltipIfNeeded = () => {
+    if (this.tooltipTimeoutId) {
+      clearTimeout(this.tooltipTimeoutId);
+      delete this.tooltipTimeoutId;
+    }
 
-  onItemDragStart = () => {
     if (this.state.tooltip) {
-      this.hideTooltip();
+      this.setState({ tooltip: null });
     }
   };
 
+  onItemDragStart = () => {
+    this.hideTooltipIfNeeded();
+  };
+
   onSuggestedItemTooltipStart = item => {
-    if (item !== this.props.item && this.state.tooltip) {
-      this.hideTooltip();
+    if (item !== this.props.item) {
+      this.hideTooltipIfNeeded();
     }
   };
 
@@ -110,7 +151,7 @@ export default class SuggestedItem extends PureComponent {
   onMouseOut = e => {
     if (!this.shouldShowTooltip(e) && this.state.tooltip) {
       clearTimeout(this.tooltipTimeoutId);
-      this.tooltipTimeoutId = setTimeout(this.hideTooltip, 100);
+      this.tooltipTimeoutId = setTimeout(this.hideTooltipIfNeeded, 100);
     }
   };
 
@@ -146,57 +187,82 @@ export default class SuggestedItem extends PureComponent {
       [ point, yOffset ] = [ 'b', 26 ];
     }
 
-    this.setState({ tooltip: { point: point, yOffset: yOffset, aligned: true } });
+    this.setState({ tooltip: { point: point, yOffset: yOffset, aligned: true, showCritique: modifierKeyPressed } });
   };
 
+  renderTooltip() {
+    const { name, season, genres, date, summary, poster, scores, critics, consensus } = this.props.item;
+    const summaryCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300));
+
+    return (
+      <div className={classNames('SuggestedItem_tooltip', this.state.tooltip.point, { aligned: this.state.tooltip.aligned })}>
+        {this.state.tooltip.showCritique ? (
+          <div className='SuggestedItem_tooltip_critique'>
+            {[
+              [ 'Critics Consensus', consensus ? [ { text: consensus } ] : [] ],
+              [ 'Positive Critique', critics.filter(({ positive }) => positive) ],
+              [ 'Negative Critique', critics.filter(({ positive }) => !positive) ]
+            ].map(([ title, items ]) => (
+              <Fragment key={title}>
+                <h3>{title}</h3>
+                {items.length === 0 && <div className='SuggestedItem_tooltip_critique_text'>Nothing yet</div>}
+                {items.map(({ text }, i) => <div key={i} className='SuggestedItem_tooltip_critique_text'>{text}</div>)}
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <Fragment>
+            <div className='SuggestedItem_tooltip_scores'>
+              {[
+                [ imdbLogo, [
+                  [ '', 'imdb' ]
+                ] ],
+                [ rtLogo, [
+                  [ 'Audience',     'rtAudience'    ],
+                  [ 'All Critics',  'rtAllCritics'  ],
+                  [ 'Top Critics',  'rtTopCritics'  ]
+                ] ],
+              ].map(([ logo, scoreRows ], i) => (
+                <div key={i} className={classNames('SuggestedItem_tooltip_scores_origin', { hidden: scoreRows.every(([ _, key ]) => !scores[key]) })}>
+                  <img className='SuggestedItem_tooltip_scores_logo' alt='' src={logo} />
+                  {scoreRows.filter(([ _, key ]) => scores[key]).map(([ name, key ]) => (
+                    <div key={key} className='SuggestedItem_tooltip_scores_score'>
+                      {name && <div className='SuggestedItem_tooltip_scores_score_name'>{name}</div>}
+                      <div className='SuggestedItem_tooltip_scores_score_number'>{scores[key].value.toFixed(1)}</div>
+                      <div className='SuggestedItem_tooltip_scores_score_votes'>{scores[key].votes}</div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+            <img className='SuggestedItem_tooltip_poster' alt={name} src={`https://image.tmdb.org/t/p/w${devicePixelRatio * 2}00/${poster}`} />
+            <div className='SuggestedItem_tooltip_summary' style={{
+              fontSize: 12 - Math.round(1.0 * summaryCompactingFactor * 10) / 10,
+              lineHeight: 2 - Math.round(0.7 * summaryCompactingFactor * 10) / 10
+            }}>
+              {summary}
+            </div>
+            <div className='SuggestedItem_tooltip_footerRow'>
+              {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
+            </div>
+            <div className='SuggestedItem_tooltip_footerRow'>
+              {season && <span>season {number.toWords(season)}</span>}
+              <span>{moment(date).year()}</span>
+            </div>
+          </Fragment>
+        )}
+      </div>
+    );
+  }
+
   render() {
-    const { meter, item: { id, imdbId, rtId, name, season, genres, date, summary, poster, trailerKey, scores } } = this.props;
-    const expandedName = [ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ');
-    const tooltipTextCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300));
+    const { meter, item: { id, imdbId, rtId, name, season, date, trailerKey } } = this.props;
 
     return (
       <Fragment>
         {this.state.tooltip && (
           <Align align={{ points: [ `${this.state.tooltip.point}l`, 'cr' ], offset: [ 20, this.state.tooltip.yOffset ] }} onAlign={this.onTooltipAlign} target={this.getRef}>
-            <div className={classNames('SuggestedItem_tooltip', this.state.tooltip.point, { aligned: this.state.tooltip.aligned })}>
-              <div className='SuggestedItem_tooltip_scores'>
-                {[
-                  [ imdbLogo, [
-                    [ '', 'imdb' ]
-                  ] ],
-                  [ rtLogo, [
-                    [ 'Audience',     'rtAudience'    ],
-                    [ 'All Critics',  'rtAllCritics'  ],
-                    [ 'Top Critics',  'rtTopCritics'  ]
-                  ] ],
-                ].map(([ logo, scoreRows ]) => (
-                  <div className={classNames('SuggestedItem_tooltip_scores_origin', { hidden: scoreRows.every(([ _, key ]) => !scores[key]) })}>
-                    <img className='SuggestedItem_tooltip_scores_logo' alt='' src={logo} />
-                    {scoreRows.filter(([ _, key ]) => scores[key]).map(([ name, key ]) => (
-                      <div className='SuggestedItem_tooltip_scores_score'>
-                        {name && <div className='SuggestedItem_tooltip_scores_score_name'>{name}</div>}
-                        <div className='SuggestedItem_tooltip_scores_score_number'>{scores[key].value.toFixed(1)}</div>
-                        <div className='SuggestedItem_tooltip_scores_score_votes'>{scores[key].votes}</div>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-              <img className='SuggestedItem_tooltip_poster' alt={name} src={`https://image.tmdb.org/t/p/w${devicePixelRatio * 2}00/${poster}`} />
-              <div className='SuggestedItem_tooltip_text' style={{
-                fontSize: 12 - Math.round(1.0 * tooltipTextCompactingFactor * 10) / 10,
-                lineHeight: 2 - Math.round(0.7 * tooltipTextCompactingFactor * 10) / 10
-              }}>
-                {summary}
-              </div>
-              <div className='SuggestedItem_tooltip_footerRow'>
-                {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
-              </div>
-              <div className='SuggestedItem_tooltip_footerRow'>
-                {season && <span>season {number.toWords(season)}</span>}
-                <span>{moment(date).year()}</span>
-              </div>
-            </div>
+            {this.renderTooltip()}
           </Align>
         )}
         <Item
@@ -215,7 +281,7 @@ export default class SuggestedItem extends PureComponent {
         >
           <div className='SuggestedItem_box'>
             <Fragment>
-              <h3 className='SuggestedItem_title' title={expandedName}>
+              <h3 className='SuggestedItem_title' title={[ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ')}>
                 <span>{name}</span>
                 {season && <span className='SuggestedItem_season'>{season}</span>}
               </h3>
