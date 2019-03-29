@@ -381,6 +381,16 @@ function areSameNames(name1, name2) {
             }
           }
 
+          let trailerKey;
+
+          if (videos && videos.length > 0) {
+            if (videos.every(({ type }) => type !== 'Trailer')) {
+              trailerKey = videos[0].key;
+            } else {
+              trailerKey = videos.filter(({ type }) => type === 'Trailer').map(({ key }) => key)[0];
+            }
+          }
+
           let consensus = '';
 
           if (rtCriticsRating && rtCriticsRating.tomatometerAllCritics && rtCriticsRating.tomatometerAllCritics.consensus) {
@@ -395,7 +405,7 @@ function areSameNames(name1, name2) {
             genres: tmdb.genres.map(({ name }) => name).map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
             summary: (tmdb.overview || imdb.description).replace(/&amp;/g, '&'),
             poster: tmdb.poster_path,
-            trailerKey: videos && videos.filter(({ type }) => type === 'Trailer').map(({ key }) => key)[0],
+            trailerKey: trailerKey,
             date: release_date,
             discDate: discDate,
             duration: duration,
@@ -435,6 +445,7 @@ function areSameNames(name1, name2) {
 
           const tmdb = await fetchItem(id, 'tv');
           const { imdb_id } = await fetchExternalIds(id, 'tv');
+          const videos = (await fetchItemVideos(id, 'tv')).results;
           const { first_air_date, last_air_date, seasons } = tmdb;
 
           if (!seasons) {
@@ -514,7 +525,7 @@ function areSameNames(name1, name2) {
             let rt;
             let rtTopCriticsReviews;
             const season = seasons[s];
-            const videos = (await fetchSeasonVideos(id, season.season_number)).results;
+            const seasonVideos = (await fetchSeasonVideos(id, season.season_number)).results;
 
             if (rtSearchResult) {
               const seasonUrl = `${rtSearchResult.url.replace('/s01', '')}/s${zeroFill(2, season.season_number)}`;
@@ -590,6 +601,24 @@ function areSameNames(name1, name2) {
               consensus = rt.seasonData.tomatometer.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
             }
 
+            let trailerKey;
+
+            if (seasonVideos && seasonVideos.length > 0) {
+              if (seasonVideos.every(({ type }) => type !== 'Trailer')) {
+                trailerKey = seasonVideos[0].key;
+              } else {
+                trailerKey = seasonVideos.filter(({ type }) => type === 'Trailer').map(({ key }) => key)[0];
+              }
+            }
+
+            if (!trailerKey && videos && videos.length > 0) {
+               if (videos.every(({ type }) => type !== 'Trailer')) {
+                trailerKey = videos[0].key;
+              } else {
+                trailerKey = videos.filter(({ type }) => type === 'Trailer').map(({ key }) => key)[0];
+              }
+            }
+
             seasonItems.push({
               id: `${id}_${season.season_number}`,
               imdbId: imdb_id.substring(2),
@@ -598,7 +627,7 @@ function areSameNames(name1, name2) {
               genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
               summary: (season.overview || tmdb.overview || imdb.description).replace(/&amp;/g, '&'),
               poster: season.poster_path || tmdb.poster_path,
-              trailerKey: videos && videos.filter(({ type }) => type === 'Trailer').map(({ key }) => key)[0],
+              trailerKey: trailerKey,
               date: season.air_date,
               season: season.season_number,
               episodes: season.episode_count,
