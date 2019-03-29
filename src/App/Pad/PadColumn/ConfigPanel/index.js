@@ -7,19 +7,19 @@ import './styles.css';
 function getScoreDefaults(origin) {
   const defaults = {
     imdb: {
-      min: 65,
+      min: 80,
       max: 100
     },
     rtAudience: {
-      min: 30,
+      min: 40,
       max: 50
     },
     rtAllCritics: {
-      min: 60,
+      min: 70,
       max: 100
     },
     rtTopCritics: {
-      min: 55,
+      min: 65,
       max: 100
     }
   };
@@ -44,12 +44,14 @@ const allGenres = [
   'Horror',
   'Kids',
   'Music',
+  'Musical',
   'Mystery',
   'News',
   'Politics',
   'Reality',
   'Romance',
   'Sci-Fi',
+  'Soap',
   'TV Movie',
   'Talk',
   'Thriller',
@@ -63,7 +65,7 @@ if (!localStorage.config) {
     score: getScoreDefaults('imdb'),
     year: {
       max: 'today',
-      min: moment().year() - 1
+      min: moment().year() - 2
     },
     genres: {
       condition: 'one',
