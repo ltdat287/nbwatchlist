@@ -16,7 +16,7 @@ export default class WatchedItem extends PureComponent {
 
     return (
       <Item className='WatchedItem' type='watched' id={id}>
-        <h3 className='WatchedItem_title' title={[ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ')}>
+        <h3 className='WatchedItem_title' title={[ name, season && season < 20 ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ')}>
           <span>{name}</span>
           {season && <span className='WatchedItem_season'>{season}</span>}
         </h3>

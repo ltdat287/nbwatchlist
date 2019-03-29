@@ -246,7 +246,7 @@ export default class SuggestedItem extends PureComponent {
               {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
             </div>
             <div className='SuggestedItem_tooltip_footerRow'>
-              {season && <span>season {number.toWords(season)}</span>}
+              {season && season < 20 && <span>season {number.toWords(season)}</span>}
               <span>{moment(date).year()}</span>
             </div>
           </Fragment>

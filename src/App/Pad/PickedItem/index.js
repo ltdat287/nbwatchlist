@@ -19,7 +19,7 @@ export default class PickedItem extends PureComponent {
         <img className='PickedItem_poster' alt={name} src={`https://image.tmdb.org/t/p/w200/${poster}`} />
         <div className='PickedItem_info'>
           <div className='PickedItem_info-flex'>
-            <h3 className='PickedItem_title' title={[ name, season ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ')}>
+            <h3 className='PickedItem_title' title={[ name, season && season < 20 ? `(season ${number.toWords(season)})` : `(${moment(date).year()})` ].join(' ')}>
               <span>{name}</span>
               {season && <span className='PickedItem_season'>{season}</span>}
             </h3>
