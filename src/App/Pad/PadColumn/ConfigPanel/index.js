@@ -59,24 +59,22 @@ const allGenres = [
   'Western'
 ];
 
-if (!localStorage.config) {
-  localStorage.config = JSON.stringify({
-    medium: 'all',
-    score: getScoreDefaults('imdb'),
-    year: {
-      max: 'today',
-      min: moment().year() - 2
-    },
-    genres: {
-      condition: 'one',
-      list: allGenres
-    },
-    disc: false,
-    groupByYear: true
-  });
-}
+const defaults = {
+  medium: 'all',
+  score: getScoreDefaults('imdb'),
+  year: {
+    max: 'today',
+    min: moment().year() - 2
+  },
+  genres: {
+    condition: 'one',
+    list: allGenres
+  },
+  disc: false,
+  groupByYear: true
+};
 
-let primaryState = JSON.parse(localStorage.config);
+let primaryState = localStorage.config ? JSON.parse(localStorage.config) : defaults;
 
 export function getConfigState() {
   return primaryState;
