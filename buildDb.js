@@ -647,6 +647,8 @@ function areSameNames(name1, name2) {
     }
   }
 
+  items = _(items).uniqBy('id').value();
+
   if (!fs.existsSync('db')){
     fs.mkdirSync('db');
   }
