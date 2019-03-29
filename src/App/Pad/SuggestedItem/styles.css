@@ -247,6 +247,7 @@
 .SuggestedItem_tooltip_summary {
   display: inline-block;
   margin: var(--tooltip-padding) 0;
+  width: 100%;
 
   text-align: justify;
 }
