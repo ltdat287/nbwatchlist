@@ -19,17 +19,15 @@ function parseMaxYear(year) {
   return year === 'today' ? moment().year() : year;
 }
 
-if (!localStorage.columns) {
-  localStorage.columns = JSON.stringify({
-    picked: [],
-    watched: []
-  });
-}
+const columnDefaults = {
+  picked: [],
+  watched: []
+};
 
 export default class Pad extends PureComponent {
 
   state = {
-    columns: JSON.parse(localStorage.columns),
+    columns: localStorage.columns ? JSON.parse(localStorage.columns) : columnDefaults,
     config: getConfigState(),
     items: [],
     trailerItem: null
@@ -51,8 +49,6 @@ export default class Pad extends PureComponent {
   }
 
   componentDidUpdate() {
-    localStorage.columns = JSON.stringify(this.state.columns);
-
     this.fetchYearsIfNeeded();
   }
 
@@ -103,7 +99,8 @@ export default class Pad extends PureComponent {
         [sourceType]: sourceType === 'suggested' ? undefined : state.columns[sourceType].filter(({ id }) => id !== droppedId),
         [targetType]: targetType === 'suggested' ? undefined : state.columns[targetType].concat([ columnItem ])
       }
-    }));
+    }),
+    () => localStorage.columns = JSON.stringify(this.state.columns));
   };
 
   onStartTrailer = item => {
