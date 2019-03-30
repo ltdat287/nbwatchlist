@@ -105,14 +105,6 @@ export default class Pad extends PureComponent {
     }
   };
 
-  onPlayerClose = () => {
-    this.setState({ trailerItem: null });
-  };
-
-  onConfigStateChange = config => {
-    this.setState({ config, itemLimit: itemLimitDefaults });
-  };
-
   onItemDrop = (droppedId, sourceType, targetType) => {
     const item = this.state.items.find(({ id }) => id === droppedId);
     const columnItem = { id: droppedId, year: yearOf(item.date) };
@@ -125,6 +117,14 @@ export default class Pad extends PureComponent {
       }
     }),
     () => localStorage.columns = JSON.stringify(this.state.columns));
+  };
+
+  onConfigStateChange = config => {
+    this.setState({ config, itemLimit: itemLimitDefaults });
+  };
+
+  onPlayerClose = () => {
+    this.setState({ trailerItem: null });
   };
 
   onStartTrailer = item => {

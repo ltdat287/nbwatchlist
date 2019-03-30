@@ -51,14 +51,14 @@ export default class Item extends PureComponent {
     Events.emit('item.drag', this.props, e.nativeEvent);
   };
 
-  onMouseUp = () => {
-    this.endDrag();
-  };
-
   onKeyDown = ({ keyCode }) => {
     if (keyCode === 27) {
       this.cancelDrag();
     }
+  };
+
+  onMouseUp = () => {
+    this.endDrag();
   };
 
   onMouseMove = e => {

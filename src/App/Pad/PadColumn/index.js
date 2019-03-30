@@ -57,6 +57,12 @@ export default class PadColumn extends PureComponent {
     this.subscriptions.forEach(_ => _.remove());
   }
 
+  onKeyDown = ({ keyCode }) => {
+    if (keyCode === 27) {
+      this.setState({ configPanelOpen: false });
+    }
+  };
+
   onItemDrag = (props, mouse) => {
     this.setState({ draggingItem: { props, mouse } });
   };
@@ -71,12 +77,6 @@ export default class PadColumn extends PureComponent {
 
   onItemDragCancel = () => {
     this.setState({ draggingItem: null });
-  };
-
-  onKeyDown = ({ keyCode }) => {
-    if (keyCode === 27) {
-      this.setState({ configPanelOpen: false });
-    }
   };
 
   onConfigPanelVisibleChange = visible => {
