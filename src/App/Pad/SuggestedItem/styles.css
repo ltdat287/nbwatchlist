@@ -252,6 +252,14 @@
   text-align: justify;
 }
 
+@media (max-height: 750px) {
+  .SuggestedItem_tooltip_summary {
+    margin: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+}
+
 /* Tooltip > Footer */
 
 .SuggestedItem_tooltip_footerRow {
