@@ -24,12 +24,19 @@ const columnDefaults = {
   watched: []
 };
 
+const itemLimitIncreaseStep = 50;
+const itemLimitDefaults = {
+  value: itemLimitIncreaseStep,
+  bodyHeight: 0
+};
+
 export default class Pad extends PureComponent {
 
   state = {
     columns: localStorage.columns ? JSON.parse(localStorage.columns) : columnDefaults,
     config: getConfigState(),
     items: [],
+    itemLimit: itemLimitDefaults,
     trailerItem: null
   };
 
@@ -37,6 +44,8 @@ export default class Pad extends PureComponent {
   yearsFetched = [];
 
   componentDidMount() {
+    window.addEventListener('scroll', this.onScroll);
+
     this.subscriptions = [
       Events.subscribe('config.state', this.onConfigStateChange)
     ];
@@ -45,6 +54,8 @@ export default class Pad extends PureComponent {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('scroll', this.onScroll);
+
     this.subscriptions.forEach(_ => _.remove());
   }
 
@@ -81,12 +92,25 @@ export default class Pad extends PureComponent {
       });
   };
 
+  onScroll = () => {
+    const bodyHeight = document.body.scrollHeight;
+
+    if (bodyHeight > this.state.itemLimit.bodyHeight && bodyHeight - (window.scrollY + window.innerHeight) < 4000) {
+      this.setState(({ itemLimit: { value } }) => ({
+        itemLimit: {
+          value: value + itemLimitIncreaseStep,
+          bodyHeight: bodyHeight
+        }
+      }));
+    }
+  };
+
   onPlayerClose = () => {
     this.setState({ trailerItem: null });
   };
 
   onConfigStateChange = config => {
-    this.setState({ config });
+    this.setState({ config, itemLimit: itemLimitDefaults });
   };
 
   onItemDrop = (droppedId, sourceType, targetType) => {
@@ -107,18 +131,7 @@ export default class Pad extends PureComponent {
     this.setState({ trailerItem: item });
   };
 
-  renderSuggestedItem(item) {
-    return (
-      <SuggestedItem
-        key={item.id}
-        meter={item.scores[this.state.config.score.origin].value / (this.state.config.score.max / 10)}
-        item={item}
-        onStartTrailer={this.onStartTrailer}
-      />
-    );
-  }
-
-  renderSuggestedItems() {
+  suggestedItems() {
     const { columns, config } = this.state;
     const items = _(this.state.items)
       .filter(({ season, discDate }) => !config.disc || season || (discDate && moment().isAfter(discDate)))
@@ -152,13 +165,7 @@ export default class Pad extends PureComponent {
           groupedItems.push(item);
         });
 
-      return groupedItems.map(item => {
-        if (item.divider) {
-          return <div key={`divider_${item.year}`} className='Pad_column_divider'>{item.year}</div>;
-        }
-
-        return this.renderSuggestedItem(item);
-      });
+      return groupedItems;
     }
 
     return items
@@ -166,7 +173,6 @@ export default class Pad extends PureComponent {
         ({ scores }) => scores[config.score.origin].value,
         ({ scores }) => scores[config.score.origin].votes)
       .reverse()
-      .map(item => this.renderSuggestedItem(item))
       .value();
   }
 
@@ -189,7 +195,22 @@ export default class Pad extends PureComponent {
             onItemDrop={this.onItemDrop}
             withConfigPanel
           >
-            {this.renderSuggestedItems()}
+            {this.suggestedItems()
+              .splice(0, this.state.itemLimit.value)
+              .map(item => {
+                if (item.divider) {
+                  return <div key={`divider_${item.year}`} className='Pad_column_divider'>{item.year}</div>;
+                }
+
+                return (
+                  <SuggestedItem
+                    key={item.id}
+                    meter={item.scores[this.state.config.score.origin].value / (this.state.config.score.max / 10)}
+                    item={item}
+                    onStartTrailer={this.onStartTrailer}
+                  />
+                );
+              })}
           </PadColumn>
           <PadColumn
             title='Picked'
@@ -208,8 +229,8 @@ export default class Pad extends PureComponent {
               .filter(({ id }) => this.state.columns.picked.some(columnItem => columnItem.id === id))
               .sortBy(({ scores }) => (scores[this.state.config.score.origin] || { value: 0 }).value)
               .reverse()
-              .map(item => <PickedItem key={item.id} item={item} />)
-              .value()}
+              .value()
+              .map(item => <PickedItem key={item.id} item={item} />)}
           </PadColumn>
           <PadColumn
             title='Watched'
@@ -228,8 +249,9 @@ export default class Pad extends PureComponent {
               .filter(({ id }) => this.state.columns.watched.some(columnItem => columnItem.id === id))
               .sortBy(({ id }) => this.state.columns.watched.map(({ id }) => id).indexOf(id))
               .reverse()
-              .map(item => <WatchedItem key={item.id} item={item} />)
-              .value()}
+              .value()
+              .splice(0, this.state.itemLimit.value)
+              .map(item => <WatchedItem key={item.id} item={item} />)}
           </PadColumn>
         </div>
       </Fragment>

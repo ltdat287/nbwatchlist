@@ -65,7 +65,7 @@ const defaults = {
   score: getScoreDefaults('imdb'),
   year: {
     max: 'today',
-    min: moment().year() - 5
+    min: 2000
   },
   genres: {
     include: {
