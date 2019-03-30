@@ -16,15 +16,6 @@
   font-size: 13px;
 }
 
-.ConfigPanel button,
-.ConfigPanel select {
-  font-family: var(--font-text);
-}
-
-.ConfigPanel button {
-  width: 60px;
-}
-
 .ConfigPanel:before {
   position: absolute;
   top: 0;
@@ -35,6 +26,19 @@
   margin-left: -8px;
   border: 8px solid transparent;
   border-bottom-color: var(--color-item-bg);
+}
+
+.ConfigPanel button,
+.ConfigPanel select {
+  font-family: var(--font-text);
+}
+
+.ConfigPanel button {
+  width: 60px;
+}
+
+.ConfigPanel label.disabled {
+  color: var(--color-item-muted-fg);
 }
 
 .ConfigPanel_section {
@@ -55,7 +59,7 @@
   margin-bottom: 15px;
 
   color: var(--color-accent);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: normal;
   text-transform: uppercase;
 }
@@ -91,6 +95,6 @@
   margin-bottom: 5px;
 }
 
-.ConfigPanel [name='genres.selectAll'] {
+.ConfigPanel [name*='selectAll'] {
   margin-right: var(--padding);
 }

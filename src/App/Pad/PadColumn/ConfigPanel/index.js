@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import classNames from 'classnames';
 import _ from 'lodash';
 import moment from 'moment';
 import Events from '../../../Events';
@@ -64,11 +65,22 @@ const defaults = {
   score: getScoreDefaults('imdb'),
   year: {
     max: 'today',
-    min: moment().year() - 2
+    min: moment().year() - 5
   },
   genres: {
-    condition: 'one',
-    list: allGenres
+    include: {
+      condition: 'one',
+      list: allGenres
+    },
+    exclude: [
+      'Documentary',
+      'History',
+      'Musical',
+      'News',
+      'Reality',
+      'Soap',
+      'Talk'
+    ]
   },
   disc: false,
   groupByYear: true
@@ -130,17 +142,26 @@ export default class ConfigPanel extends PureComponent {
           newState.year.max = Math.max(newState.year.max, newState.year.min);
         }
         break;
-      case 'genres.condition':
-        newState.genres.condition = value;
+      case 'genres.include.condition':
+        newState.genres.include.condition = value;
         break;
-      case 'genres.selectAll':
-        newState.genres.list = allGenres;
+      case 'genres.include.selectAll':
+        newState.genres.include.list = allGenres;
         break;
-      case 'genres.selectNone':
-        newState.genres.list = [];
+      case 'genres.include.selectNone':
+        newState.genres.include.list = [];
         break;
-      case 'genres':
-        newState.genres.list = checked ? newState.genres.list.concat([ value ]) : newState.genres.list.filter(genre => genre !== value);
+      case 'genres.include':
+        newState.genres.include.list = checked ? newState.genres.include.list.concat([ value ]) : newState.genres.include.list.filter(genre => genre !== value);
+        break;
+      case 'genres.exclude.selectAll':
+        newState.genres.exclude = allGenres;
+        break;
+      case 'genres.exclude.selectNone':
+        newState.genres.exclude = [];
+        break;
+      case 'genres.exclude':
+        newState.genres.exclude = checked ? newState.genres.exclude.concat([ value ]) : newState.genres.exclude.filter(genre => genre !== value);
         break;
       case 'disc':
         newState.disc = checked;
@@ -185,10 +206,9 @@ export default class ConfigPanel extends PureComponent {
     return (
       <div className='ConfigPanel'>
         <section className='ConfigPanel_section'>
-          <h2>General</h2>
+          <h2>Suggest</h2>
 
           <div>
-            <h3>Suggest</h3>
             {[
               [ 'movie',  'Movies'    ],
               [ 'tv',     'TV series' ],
@@ -261,35 +281,69 @@ export default class ConfigPanel extends PureComponent {
         </section>
 
         <section className='ConfigPanel_section'>
-          <h2>Genres</h2>
+          {this.state.genres.include.condition === 'one' && <h2>Included Genres</h2>}
+          {this.state.genres.include.condition === 'all' && <h2>Genres</h2>}
 
           <div>
             <h3>Select</h3>
             <div className='ConfigPanel_selectGenres'>
-              <button type='button' name='genres.selectAll' className='ConfigPanel_selectAll' onClick={this.onInputChange}>All</button>
-              <button type='button' name='genres.selectNone' onClick={this.onInputChange}>None</button>
+              <button type='button' name='genres.include.selectAll' className='ConfigPanel_selectAll' onClick={this.onInputChange}>All</button>
+              <button type='button' name='genres.include.selectNone' onClick={this.onInputChange}>None</button>
             </div>
-            {allGenres.map(genre => (
-              <div key={genre} className='ConfigPanel_genre'>
-                <label>
-                  <input type='checkbox' name='genres' value={genre} checked={this.state.genres.list.includes(genre)} onChange={this.onInputChange} />{genre}
-                </label>
-              </div>
-            ))}
+            {allGenres.map(genre => {
+              const disabled = this.state.genres.include.condition === 'one' && this.state.genres.exclude.includes(genre);
+
+              return (
+                <div key={genre}>
+                  <label className={classNames({ disabled: disabled })}>
+                    <input
+                      type='checkbox'
+                      name='genres.include'
+                      value={genre}
+                      checked={this.state.genres.include.list.includes(genre) && !disabled}
+                      disabled={disabled}
+                      onChange={this.onInputChange}
+                    />
+                    {genre}
+                  </label>
+                </div>
+              );
+            })}
 
             <h3>Suggest With</h3>
             <div>
               <label>
-                <input type='radio' name='genres.condition' value='one' checked={this.state.genres.condition === 'one'} onChange={this.onInputChange} />At least one of the above
+                <input type='radio' name='genres.include.condition' value='one' checked={this.state.genres.include.condition === 'one'} onChange={this.onInputChange} />At least one of the above
               </label>
             </div>
             <div>
               <label>
-                <input type='radio' name='genres.condition' value='all' checked={this.state.genres.condition === 'all'} onChange={this.onInputChange} />All of the above
+                <input type='radio' name='genres.include.condition' value='all' checked={this.state.genres.include.condition === 'all'} onChange={this.onInputChange} />All of the above
               </label>
             </div>
           </div>
         </section>
+
+        {this.state.genres.include.condition === 'one' && (
+          <section className='ConfigPanel_section'>
+            <h2>Excluded Genres</h2>
+
+            <div>
+              <h3>Select</h3>
+              <div className='ConfigPanel_selectGenres'>
+                <button type='button' name='genres.exclude.selectAll' className='ConfigPanel_selectAll' onClick={this.onInputChange}>All</button>
+                <button type='button' name='genres.exclude.selectNone' onClick={this.onInputChange}>None</button>
+              </div>
+              {allGenres.map(genre => (
+                <div key={genre} className='ConfigPanel_genre'>
+                  <label>
+                    <input type='checkbox' name='genres.exclude' value={genre} checked={this.state.genres.exclude.includes(genre)} onChange={this.onInputChange} />{genre}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     );
   }
