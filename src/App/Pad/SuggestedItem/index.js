@@ -81,13 +81,13 @@ export default class SuggestedItem extends PureComponent {
 
   onKeyDown = e => {
     if (this.state.tooltip && hasModifier(e)) {
-      this.setState({ tooltip: { ...this.state.tooltip, showCritique: true } });
+      this.setState(state => ({ tooltip: { ...state.tooltip, showCritique: true } }));
     }
   };
 
   onKeyUp = () => {
     if (this.state.tooltip) {
-      this.setState({ tooltip: { ...this.state.tooltip, showCritique: false } });
+      this.setState(state => ({ tooltip: { ...state.tooltip, showCritique: false } }));
     }
   };
 
