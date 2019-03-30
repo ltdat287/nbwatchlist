@@ -28,7 +28,8 @@ async function fetchTmdb(url, query) {
         });
     });
 
-    if (result && result.status_code === 25) {
+    if (result && (result.status_code || result.status_message)) {
+      console.log(result);
       await new Promise((resolve, reject) => setTimeout(resolve, 5000));
       continue;
     }
@@ -54,7 +55,7 @@ async function fetchItems(page, year, type) {
     'vote_count.gte': 5
   });
 
-  if (!p.results) {
+  if (p && !p.results) {
     console.log(p);
   }
 
