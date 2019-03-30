@@ -391,7 +391,7 @@ function areSameNames(name1, name2) {
             }
           }
 
-          let consensus = '';
+          let consensus;
 
           if (rtCriticsRating && rtCriticsRating.tomatometerAllCritics && rtCriticsRating.tomatometerAllCritics.consensus) {
             consensus = rtCriticsRating.tomatometerAllCritics.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
@@ -599,7 +599,7 @@ function areSameNames(name1, name2) {
               splitGenres = splitGenres.concat(name.split(' & '));
             });
 
-            let consensus = '';
+            let consensus;
 
             if (rt && rt.seasonData && rt.seasonData.tomatometer && rt.seasonData.tomatometer.consensus) {
               consensus = rt.seasonData.tomatometer.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
