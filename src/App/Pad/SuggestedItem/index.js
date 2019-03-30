@@ -192,7 +192,8 @@ export default class SuggestedItem extends PureComponent {
 
   renderTooltip() {
     const { name, season, genres, date, summary, poster, scores, critics, consensus } = this.props.item;
-    const summaryCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300));
+    const summaryCompactingStep = 300;
+    const summaryCompactingFactor = Math.max(0.0, Math.min(1.0, (summary.length - summaryCompactingStep) / summaryCompactingStep));
 
     return (
       <div className={classNames('SuggestedItem_tooltip', this.state.tooltip.point, { aligned: this.state.tooltip.aligned })}>
@@ -240,7 +241,7 @@ export default class SuggestedItem extends PureComponent {
               fontSize: 12 - Math.round(1.0 * summaryCompactingFactor * 10) / 10,
               lineHeight: 2 - Math.round(0.7 * summaryCompactingFactor * 10) / 10
             }}>
-              {summary}
+              {summary.length > summaryCompactingStep * 2 ? `${summary.substring(0, summaryCompactingStep * 2)}...` : summary}
             </div>
             <div className='SuggestedItem_tooltip_footerRow'>
               {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
