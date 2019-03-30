@@ -54,7 +54,7 @@ export default class PadColumn extends PureComponent {
   componentWillUnmount() {
     window.removeEventListener('keydown', this.onKeyDown);
 
-    this.subscriptions.forEach(s => s.remove());
+    this.subscriptions.forEach(_ => _.remove());
   }
 
   onItemDrag = (props, mouse) => {

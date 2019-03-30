@@ -71,7 +71,7 @@ export default class SuggestedItem extends PureComponent {
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('scroll', this.onScroll);
 
-    this.subscriptions.forEach(s => s.remove());
+    this.subscriptions.forEach(_ => _.remove());
     clearTimeout(this.tooltipTimeoutId);
   }
 

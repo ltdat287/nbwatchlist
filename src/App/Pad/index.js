@@ -45,7 +45,7 @@ export default class Pad extends PureComponent {
   }
 
   componentWillUnmount() {
-    this.subscriptions.forEach(s => s.remove());
+    this.subscriptions.forEach(_ => _.remove());
   }
 
   componentDidUpdate() {

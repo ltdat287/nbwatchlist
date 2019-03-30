@@ -105,7 +105,7 @@ export default class ConfigPanel extends PureComponent {
   }
 
   componentWillUnmount() {
-    this.subscriptions.forEach(s => s.remove());
+    this.subscriptions.forEach(_ => _.remove());
   }
 
   onStateChange = state => {
