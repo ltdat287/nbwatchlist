@@ -200,9 +200,9 @@ export default class SuggestedItem extends PureComponent {
         {this.state.tooltip.showCritique ? (
           <div className='SuggestedItem_tooltip_critique'>
             {[
-              [ 'Critics Consensus', consensus ? [ { text: consensus } ] : [] ],
-              [ 'Positive Critique', critics.filter(({ positive }) => positive) ],
-              [ 'Negative Critique', critics.filter(({ positive }) => !positive) ]
+              [ '🧐 Critics Consensus', consensus ? [ { text: consensus } ] : [] ],
+              [ '👍 Positive Critique', critics.filter(({ positive }) => positive) ],
+              [ '👎 Negative Critique', critics.filter(({ positive }) => !positive) ]
             ].map(([ title, items ]) => (
               <div key={title} className='SuggestedItem_tooltip_critique_section'>
                 <h3>{title}</h3>
