@@ -9,6 +9,7 @@ import {
   VKShareButton, VKShareCount, VKIcon
 } from 'react-share';
 import humanFormat from 'human-format';
+import BrandedButton from '../components/BrandedButton';
 import Pad from './Pad';
 import imdbLogo from './imdb.png';
 import rtLogo from './rt.svg';
@@ -43,6 +44,11 @@ export default class App extends PureComponent {
       .end(() => this.setState({ hideSubscribeForm: true }));
   };
 
+  onResetButtonPress = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   onEmailChange = ({ currentTarget: { value } }) => {
     this.setState({ email: value });
   };
@@ -54,8 +60,9 @@ export default class App extends PureComponent {
   render() {
     if (this.state.didCatch) {
       return (
-        <div className='App'>
-          <h1 className='App_title error'>Oops, something went wrong!<br />Try refreshing.</h1>
+        <div className='App errorPage'>
+          <h1 className='App_title'>Oops, something went wrong!<br />Try refreshing.</h1>
+          <BrandedButton className='App_resetButton' onClick={this.onResetButtonPress}>Not helping? Click here to reset the app</BrandedButton>
         </div>
       );
     }
@@ -108,7 +115,7 @@ export default class App extends PureComponent {
           <form className='App_subscribe' onSubmit={this.onSubmit}>
             <h2>News, updates, future plans. No spam guaranteed!</h2>
             <input type='email' placeholder='type your email address' autoComplete='off' value={this.state.email} onChange={this.onEmailChange} required />
-            <button type='submit'>Subscribe</button>
+            <BrandedButton type='submit'>Subscribe</BrandedButton>
             <div className='App_subscribe_hideButtonContainer'>
               <button type='button' onClick={this.onHideSubscribeFormButtonPress}>no thanks</button>
             </div>

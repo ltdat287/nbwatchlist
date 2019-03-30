@@ -90,10 +90,6 @@
   color: var(--color-accent);
 }
 
-.App_title.error {
-  font-size: 50px;
-}
-
 /* Sharing */
 
 .App_shareButtonsRow {
@@ -187,33 +183,6 @@ form.App_subscribe input::placeholder {
   color: var(--color-fg);
 }
 
-form.App_subscribe button[type=submit] {
-  width: 150px;
-  height: 47px;
-
-  color: var(--color-bg);
-  background-color: var(--color-yellow);
-  font-size: 16px;
-  font-weight: bold;
-  text-transform: uppercase;
-  border: none;
-  cursor: pointer;
-
-  transition-property: filter;
-  transition-duration: 0.05s;
-  transition-timing-function: ease-in;
-}
-
-form.App_subscribe button[type=submit]:hover {
-  filter: brightness(105%);
-
-  transition-timing-function: ease-out;
-}
-
-form.App_subscribe button[type=submit]:active {
-  filter: brightness(108%);
-}
-
 .App_subscribe_hideButtonContainer {
   margin-right: 50px;
 
@@ -227,16 +196,7 @@ form.App_subscribe button[type=button] {
   background-color: transparent;
   text-decoration: underline;
   border: none;
-
-  transition-property: color;
-  transition-duration: 0.05s;
-  transition-timing-function: ease-in;
-}
-
-form.App_subscribe button[type=button]:hover {
   cursor: pointer;
-
-  transition-timing-function: ease-out;
 }
 
 /* Contact */
@@ -250,4 +210,18 @@ form.App_subscribe button[type=button]:hover {
 
 .App_contact a {
   color: var(--color-accent);
+}
+
+/* Error Page */
+
+.App.errorPage .App_title {
+  margin-top: 200px;
+  margin-bottom: 100px;
+
+  font-size: 50px;
+}
+
+.App.errorPage .App_resetButton {
+  display: block;
+  margin: 0 auto;
 }

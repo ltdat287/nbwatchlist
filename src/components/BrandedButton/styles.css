@@ -1,0 +1,28 @@
+@import '../../vars.css';
+
+.BrandedButton {
+  padding: 0 30px;
+  height: 47px;
+
+  font-size: 16px;
+  color: var(--color-bg);
+  background-color: var(--color-yellow);
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+
+  transition-property: filter;
+  transition-duration: 0.05s;
+  transition-timing-function: ease-in;
+}
+
+.BrandedButton:hover {
+  filter: brightness(105%);
+
+  transition-timing-function: ease-out;
+}
+
+.BrandedButton:active {
+  filter: brightness(108%);
+}
