@@ -527,7 +527,7 @@ function areSameNames(name1, name2) {
             const season = seasons[s];
             const seasonVideos = (await fetchSeasonVideos(id, season.season_number)).results;
 
-            if (season.season_number === 0) {
+            if (season.season_number <= 0) {
               continue;
             }
 
