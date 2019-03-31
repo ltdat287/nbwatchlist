@@ -3,6 +3,7 @@
 :root {
   --attribution-size:     16px;
   --side-banner-padding:  20px;
+  --subscribe-top-margin: 90px;
 }
 
 .App {
@@ -141,10 +142,17 @@
 
 /* Subscribe */
 
+.App_subscribeConfirmation {
+  margin-top: calc(var(--subscribe-top-margin) + 20px);
+
+  font-size: 18px;
+  text-align: center;
+}
+
 form.App_subscribe {
   width: 600px;
   margin: 0 auto;
-  margin-top: 90px;
+  margin-top: var(--subscribe-top-margin);
 
   text-align: center;
 }

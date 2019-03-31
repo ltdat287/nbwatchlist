@@ -23,6 +23,7 @@ export default class App extends PureComponent {
   state = {
     didCatch: false,
     hideSubscribeForm: localStorage.hideSubscribeForm,
+    showSubscribeConfirmation: false,
     email: ''
   };
 
@@ -41,7 +42,10 @@ export default class App extends PureComponent {
       .post('/')
       .type('form')
       .send({ 'form-name': 'subscribe', email: this.state.email })
-      .end(() => this.setState({ hideSubscribeForm: true }));
+      .end(() => {
+        this.setState({ hideSubscribeForm: true, showSubscribeConfirmation: true });
+        setTimeout(() => this.setState({ showSubscribeConfirmation: false }), 3000);
+      });
   };
 
   onResetButtonPress = () => {
@@ -110,6 +114,10 @@ export default class App extends PureComponent {
             ))}
           </div>
         </div>
+
+        {this.state.showSubscribeConfirmation && (
+          <div className='App_subscribeConfirmation'>Thank you! You are subscribed.</div>
+        )}
 
         {!this.state.hideSubscribeForm && (
           <form className='App_subscribe' onSubmit={this.onSubmit}>
