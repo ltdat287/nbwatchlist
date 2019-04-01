@@ -15,10 +15,14 @@ function pause() {
   return new Promise((resolve, reject) => setTimeout(resolve, 3000));
 }
 
+function fetchPause() {
+  return new Promise((resolve, reject) => setTimeout(resolve, 5000));
+}
+
 async function fetchTmdb(url, query) {
   let result;
 
-  for (let i = 0; i < 10; i++) {
+  while (true) {
     result = await new Promise((resolve, reject) => {
       request
         .get(url)
@@ -30,7 +34,13 @@ async function fetchTmdb(url, query) {
 
     if (result && (result.status_code || result.status_message)) {
       console.log(result);
-      await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+      await fetchPause();
+      continue;
+    }
+
+    if (!result || Object.keys(result).length === 0) {
+      console.log('fetch tmdb no result');
+      await fetchPause();
       continue;
     }
 
@@ -45,7 +55,7 @@ async function fetchTmdb(url, query) {
 async function fetchItems(page, year, type) {
   const dateField = type === 'tv' ? 'first_air_date' : 'primary_release_date';
 
-  const p = await fetchTmdb(`https://api.themoviedb.org/3/discover/${type}`, {
+  return await fetchTmdb(`https://api.themoviedb.org/3/discover/${type}`, {
     api_key: tmdbKey,
     sort_by: `${dateField}.desc`,
     include_adult: false,
@@ -54,12 +64,6 @@ async function fetchItems(page, year, type) {
     [`${dateField}.gte`]: `${year}-01-01`,
     'vote_count.gte': 5
   });
-
-  if (p && !p.results) {
-    console.log(p);
-  }
-
-  return p;
 }
 
 async function fetchItem(id, type) {
@@ -89,7 +93,7 @@ async function fetchSeasonVideos(id, season) {
 async function fetchImdbPage(id) {
   let result;
 
-  for (let i = 0; i < 10; i++) {
+  while (true) {
     result = await new Promise((resolve, reject) => {
       request
         .get(`https://www.imdb.com/title/${id}`)
@@ -109,12 +113,12 @@ async function fetchImdbPage(id) {
 async function searchRt(title) {
   let result;
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 100; i++) {
     result = await new Promise((resolve, reject) => {
       request
         .get(`https://www.rottentomatoes.com/api/private/v2.0/search`)
         .query({
-          limit: 100,
+          limit: 105 - i,
           q: title
         })
         .end((err, res) => {
@@ -122,9 +126,9 @@ async function searchRt(title) {
         });
     });
 
-    if (Object.keys(result).length === 0) {
-      console.log(result);
-      await new Promise((resolve, reject) => setTimeout(resolve, 5000));
+    if (!result || Object.keys(result).length === 0) {
+      console.log('search rt no result');
+      await fetchPause();
       continue;
     }
 
@@ -139,7 +143,7 @@ async function searchRt(title) {
 async function fetchRtPage(path) {
   let result;
 
-  for (let i = 0; i < 10; i++) {
+  while (true) {
     result = await new Promise((resolve, reject) => {
       request
         .get(`https://www.rottentomatoes.com${path}`)
@@ -177,7 +181,7 @@ function areSameNames(name1, name2) {
     for (let i = 1; i <= pageCount; i++) {
       console.log(`${leftPad(i, 3)} / ${leftPad(pageCount, 3)}`);
 
-      const page = (await fetchItems(i, y, 'movie'));
+      const page = await fetchItems(i, y, 'movie');
       const promises = [];
 
       await pause();
@@ -431,7 +435,7 @@ function areSameNames(name1, name2) {
     for (let i = 1; i <= pageCount; i++) {
       console.log(`${leftPad(i, 3)} / ${leftPad(pageCount, 3)}`);
 
-      const page = (await fetchItems(i, y, 'tv'));
+      const page = await fetchItems(i, y, 'tv');
       const promises = [];
 
       await pause();
