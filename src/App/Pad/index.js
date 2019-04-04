@@ -70,13 +70,12 @@ export default class Pad extends PureComponent {
       years.push(year);
     }
 
-    _(years)
-      .union(this.state.columns.picked.map(({ year }) => year))
+    
+    _(this.state.columns.picked.map(({ year }) => year))
       .union(this.state.columns.watched.map(({ year }) => year))
+      .union(_(years).sort().reverse().value())
       .uniq()
       .filter(year => !this.yearsFetched.includes(year))
-      .sort()
-      .reverse()
       .forEach(this.fetchYear);
   }
 
