@@ -192,6 +192,7 @@ export default class SuggestedItem extends PureComponent {
 
   renderTooltip() {
     const { name, season, genres, date, summary, poster, scores, critics, consensus } = this.props.item;
+    const summaryCompactingStep = 250;
 
     return (
       <div className={classNames('SuggestedItem_tooltip', this.state.tooltip.point, { aligned: this.state.tooltip.aligned })}>
@@ -237,9 +238,9 @@ export default class SuggestedItem extends PureComponent {
             <img className='SuggestedItem_tooltip_poster' alt={name} src={`https://image.tmdb.org/t/p/w${devicePixelRatio * 2}00/${poster}`} />
             <div>
               <div className='SuggestedItem_tooltip_summary' style={{
-                lineHeight: 2 - Math.round(0.6 * Math.max(0.0, Math.min(1.0, (summary.length - 300) / 300)) * 10) / 10
+                lineHeight: 2 - Math.round(0.6 * Math.max(0.0, Math.min(1.0, (summary.length - summaryCompactingStep) / summaryCompactingStep)) * 10) / 10
               }}>
-                {summary.length > 500 ? `${summary.substring(0, 500)}...` : summary}
+                {summary.length > summaryCompactingStep * 2 ? `${summary.substring(0, summaryCompactingStep * 2)}...` : summary}
               </div>
               <div className='SuggestedItem_tooltip_footerRow'>
                 {genres.filter((_, i) => i < 3).map(genre => <span key={genre} className='SuggestedItem_tooltip_genre'>{genre}</span>)}
