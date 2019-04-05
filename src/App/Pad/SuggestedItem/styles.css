@@ -306,30 +306,30 @@
 }
 
 .SuggestedItem_tooltip_critique_section {
-  margin-top: var(--tooltip-padding);
+  padding-bottom: 12px;
+  margin-bottom: 8px;
+
+  border-bottom: 1px solid var(--color-separator);
 }
 
-.SuggestedItem_tooltip_critique_section:first-child {
-  margin-top: 0;
+.SuggestedItem_tooltip_critique_section:last-child {
+  padding: 0;
+  margin: 0;
+
+  border: none;
 }
 
 .SuggestedItem_tooltip_critique_section h3 {
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 
   font-size: 13px;
   font-weight: bold;
 }
 
 .SuggestedItem_tooltip_critique_text {
-  padding-bottom: 6px;
-  margin-bottom: 3px;
-
-  border-bottom: 1px solid var(--color-separator);
+  margin-bottom: 9px;
 }
 
 .SuggestedItem_tooltip_critique_text:last-child {
-  padding-bottom: 0;
   margin-bottom: 0;
-
-  border-bottom: none;
 }
