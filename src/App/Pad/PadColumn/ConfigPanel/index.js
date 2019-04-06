@@ -235,7 +235,7 @@ export default class ConfigPanel extends PureComponent {
             </div>
           </div>
 
-          <h2>Meter</h2>
+          <h2>Rating</h2>
 
           <div>
             <h3>Based on</h3>
