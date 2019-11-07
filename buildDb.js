@@ -11,10 +11,6 @@ const htmlParser = require('node-html-parser');
 const minYear = 1900;
 const tmdbKey = '9389b4f79115a7b779250d79c568c87c';
 
-function pause() {
-  return new Promise((resolve, reject) => setTimeout(resolve, 3000));
-}
-
 function fetchPause() {
   return new Promise((resolve, reject) => setTimeout(resolve, 5000));
 }
@@ -31,6 +27,11 @@ async function fetchTmdb(url, query) {
           resolve(res ? res.body : '');
         });
     });
+
+    if (result && result.status_code === 34) {
+      console.log(result);
+      return null;
+    }
 
     if (result && (result.status_code || result.status_message)) {
       console.log(result);
@@ -182,9 +183,7 @@ function areSameNames(name1, name2) {
       console.log(`${leftPad(i, 3)} / ${leftPad(pageCount, 3)}`);
 
       const page = await fetchItems(i, y, 'movie');
-      const promises = [];
-
-      await pause();
+      let promises = [];
 
       for (let j = 0; j < page.results.length; j++) {
         promises.push((async function() {
@@ -195,7 +194,18 @@ function areSameNames(name1, name2) {
           }
 
           const tmdb = await fetchItem(id, 'movie');
-          const videos = (await fetchItemVideos(id, 'movie')).results;
+
+          if (!tmdb) {
+            return;
+          }
+
+          const videosResponse = await fetchItemVideos(id, 'movie');
+
+          if (!videosResponse) {
+            return;
+          }
+
+          const videos = videosResponse.results;
           const { imdb_id } = tmdb;
 
           // IMDB
@@ -323,7 +333,7 @@ function areSameNames(name1, name2) {
               rtTopCriticsReviewsPage.indexOf('<section id="content"'),
               rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
             const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
-              text: row.querySelector('.the_review').text,
+              text: row.querySelector('.the_review').text.trim(),
               positive: !row.querySelector('.rotten')
             }));
 
@@ -419,9 +429,13 @@ function areSameNames(name1, name2) {
             consensus: consensus
           };
         })());
-      }
 
-      items = items.concat((await Promise.all(promises)).filter(item => item));
+        if (promises.length === 10 || j === page.results.length - 1) {
+          items = items.concat((await Promise.all(promises)).filter(item => item));
+
+          promises = [];
+        }
+      }
     }
   }
 
@@ -436,9 +450,7 @@ function areSameNames(name1, name2) {
       console.log(`${leftPad(i, 3)} / ${leftPad(pageCount, 3)}`);
 
       const page = await fetchItems(i, y, 'tv');
-      const promises = [];
-
-      await pause();
+      let promises = [];
 
       for (let j = 0; j < page.results.length; j++) {
         promises.push((async function() {
@@ -449,8 +461,25 @@ function areSameNames(name1, name2) {
           }
 
           const tmdb = await fetchItem(id, 'tv');
-          const { imdb_id } = await fetchExternalIds(id, 'tv');
-          const videos = (await fetchItemVideos(id, 'tv')).results;
+
+          if (!tmdb) {
+            return;
+          }
+
+          const externalIdsResponse = await fetchExternalIds(id, 'tv');
+
+          if (!externalIdsResponse) {
+            return;
+          }
+
+          const { imdb_id } = externalIdsResponse;
+          const videosResponse = await fetchItemVideos(id, 'tv');
+
+          if (!videosResponse) {
+            return;
+          }
+
+          const videos = videosResponse.results;
           const { first_air_date, last_air_date, seasons } = tmdb;
 
           if (!seasons) {
@@ -530,7 +559,13 @@ function areSameNames(name1, name2) {
             let rt;
             let rtTopCriticsReviews;
             const season = seasons[s];
-            const seasonVideos = (await fetchSeasonVideos(id, season.season_number)).results;
+            const seasonVideosResponse = await fetchSeasonVideos(id, season.season_number);
+
+            if (!seasonVideosResponse) {
+              continue;
+            }
+
+            const seasonVideos = seasonVideosResponse.results;
 
             if (season.season_number <= 0) {
               continue;
@@ -550,7 +585,7 @@ function areSameNames(name1, name2) {
                 rtTopCriticsReviewsPage.indexOf('<section id="content"'),
                 rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
               const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
-                text: row.querySelector('.the_review').text,
+                text: row.querySelector('.critic__review-quote').text.trim(),
                 positive: !row.querySelector('.rotten')
               }));
 
@@ -590,9 +625,9 @@ function areSameNames(name1, name2) {
 
             if (!scores.imdb || scores.imdb.votes < 500
               ||
-              scores.rtAudience && scores.rtAudience.votes < 100
+              scores.rtAudience && scores.rtAudience.votes < 5
               ||
-              scores.rtAllCritics && scores.rtAllCritics.votes < 10
+              scores.rtAllCritics && scores.rtAllCritics.votes < 5
               ||
               scores.rtTopCritics && scores.rtTopCritics.votes < 2) {
               continue;
@@ -634,7 +669,7 @@ function areSameNames(name1, name2) {
               rtId: rtSearchResult ? rtSearchResult.url.replace('/tv/', '').replace('/s01', '') : undefined,
               name: name,
               genres: splitGenres.map(name => name === 'Science Fiction' ? 'Sci-Fi' : name),
-              summary: (season.overview || tmdb.overview || imdb.description).replace(/&amp;/g, '&'),
+              summary: (season.overview || tmdb.overview || imdb.description || '').replace(/&amp;/g, '&'),
               poster: season.poster_path || tmdb.poster_path,
               trailerKey: trailerKey,
               date: season.air_date,
@@ -648,11 +683,15 @@ function areSameNames(name1, name2) {
 
           return seasonItems;
         })());
-      }
 
-      (await Promise.all(promises)).filter(seasonItems => seasonItems).forEach(seasonItems => {
-        items = items.concat(seasonItems);
-      });
+        if (promises.length === 5 || j === page.results.length - 1) {
+          (await Promise.all(promises)).filter(seasonItems => seasonItems).forEach(seasonItems => {
+            items = items.concat(seasonItems);
+          });
+
+          promises = [];
+        }
+      }
     }
   }
 
