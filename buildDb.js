@@ -227,9 +227,7 @@ function areSameNames(name1, name2) {
 
           // RT
           let rt;
-          let rtAudienceVotes;
-          let rtAudienceValue;
-          let rtCriticsRating;
+          let rtRating;
           let rtTopCriticsReviews;
           let discDate;
           let rtSearchResults = await searchRt(title);
@@ -303,29 +301,10 @@ function areSameNames(name1, name2) {
               rt = rtGroups[1];
             }*/
 
-            const rtAudienceVotesText = rtPage.substring(rtPage.indexOf('Audience Score'), rtPage.indexOf('</section>', rtPage.indexOf('Audience Score')));
+            const rtRatingGroups = rtPage.match(/root.RottenTomatoes.context.scoreInfo = (.+?});/s);
 
-            if (!rtAudienceVotesText.includes('Not Yet Available')) {
-              const rtAudienceVotesGroups = rtAudienceVotesText.match(/<small.*?>(.+?)<\/small>/s);
-
-              if (rtAudienceVotesGroups && rtAudienceVotesGroups.length > 1) {
-                rtAudienceVotes = rtAudienceVotesGroups[1].replace(/,/g, '');
-              }
-
-              const rtAudienceValuePosition = rtPage.indexOf('Average Rating:', rtPage.indexOf('AUDIENCE SCORE'));
-              const rtAudienceValueGroups = rtPage
-                .substring(rtAudienceValuePosition, rtPage.indexOf('</div>', rtAudienceValuePosition))
-                .match(/<span.*?>(.+?)\/5.+?<\/span>/s);
-
-              if (rtAudienceValueGroups && rtAudienceValueGroups.length > 1) {
-                rtAudienceValue = rtAudienceValueGroups[1];
-              }
-            }
-
-            const rtCriticsRatingGroups = rtPage.match(/root.RottenTomatoes.context.scoreInfo = (.+?});/s);
-
-            if (rtCriticsRatingGroups && rtCriticsRatingGroups.length > 1) {
-              rtCriticsRating = JSON.parse(rtCriticsRatingGroups[1]);
+            if (rtRatingGroups && rtRatingGroups.length > 1) {
+              rtRating = JSON.parse(rtRatingGroups[1]);
             }
 
             const rtTopCriticsReviewsPage = await fetchRtPage(`${rtSearchResult.url}/reviews/?type=top_critics`);
@@ -355,19 +334,19 @@ function areSameNames(name1, name2) {
               value: parseFloat(imdb.aggregateRating.ratingValue)
             } : undefined,
 
-            rtAudience: rtAudienceVotes ? {
-              votes: parseInt(rtAudienceVotes),
-              value: parseFloat(rtAudienceValue)
+            rtAudience: rtRating && Object.keys(rtRating.audienceAll).length > 0 ? {
+              votes: rtRating.audienceAll.ratingCount,
+              value: parseFloat(rtRating.audienceAll.averageRating)
             } : undefined,
 
-            rtAllCritics: rtCriticsRating ? {
-              votes: rtCriticsRating.tomatometerAllCritics.numberOfReviews,
-              value: rtCriticsRating.tomatometerAllCritics.avgScore
+            rtAllCritics: rtRating ? {
+              votes: rtRating.tomatometerAllCritics.numberOfReviews,
+              value: rtRating.tomatometerAllCritics.avgScore
             } : undefined,
 
-            rtTopCritics: rtCriticsRating ? {
-              votes: rtCriticsRating.tomatometerTopCritics.numberOfReviews,
-              value: rtCriticsRating.tomatometerTopCritics.avgScore
+            rtTopCritics: rtRating ? {
+              votes: rtRating.tomatometerTopCritics.numberOfReviews,
+              value: rtRating.tomatometerTopCritics.avgScore
             } : undefined
           };
 
@@ -408,8 +387,8 @@ function areSameNames(name1, name2) {
 
           let consensus;
 
-          if (rtCriticsRating && rtCriticsRating.tomatometerAllCritics && rtCriticsRating.tomatometerAllCritics.consensus) {
-            consensus = rtCriticsRating.tomatometerAllCritics.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
+          if (rtRating && rtRating.tomatometerAllCritics && rtRating.tomatometerAllCritics.consensus) {
+            consensus = rtRating.tomatometerAllCritics.consensus.replace(/<em>/g, '').replace(/<\/em>/g, '');
           }
 
           return {
