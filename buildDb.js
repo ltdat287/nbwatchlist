@@ -19,34 +19,47 @@ async function fetchTmdb(url, query) {
   let result;
 
   while (true) {
-    result = await new Promise((resolve, reject) => {
-      request
-        .get(url)
-        .query(query)
-        .end((err, res) => {
-          resolve(res ? res.body : '');
-        });
-    });
+    try {
+      result = await new Promise((resolve, reject) => {
+        request
+          .get(url)
+          .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36')
+          .query(query)
+          .timeout({
+            response: 10000,
+            deadline: 60000
+          })
+          .end((err, res) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res ? res.body : '');
+            }
+          });
+      });
 
-    if (result && result.status_code === 34) {
-      console.log(result);
-      return null;
-    }
+      if (result && result.status_code === 34) {
+        console.log(result);
+        return null;
+      }
 
-    if (result && (result.status_code || result.status_message)) {
-      console.log(result);
-      await fetchPause();
-      continue;
-    }
+      if (result && (result.status_code || result.status_message)) {
+        console.log(result);
+        await fetchPause();
+        continue;
+      }
 
-    if (!result || Object.keys(result).length === 0) {
-      console.log('fetch tmdb no result');
-      await fetchPause();
-      continue;
-    }
+      if (!result || Object.keys(result).length === 0) {
+        console.log('fetchTmdb no result');
+        await fetchPause();
+        continue;
+      }
 
-    if (result) {
-      break;
+      if (result) {
+        break;
+      }
+    } catch (e) {
+      console.log('fetchTmdb error');
     }
   }
 
@@ -95,16 +108,29 @@ async function fetchImdbPage(id) {
   let result;
 
   while (true) {
-    result = await new Promise((resolve, reject) => {
-      request
-        .get(`https://www.imdb.com/title/${id}`)
-        .end((err, res) => {
-          resolve(res ? res.text : '');
-        });
-    });
+    try {
+      result = await new Promise((resolve, reject) => {
+        request
+          .get(`https://www.imdb.com/title/${id}`)
+          .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36')
+          .timeout({
+            response: 10000,
+            deadline: 60000
+          })
+          .end((err, res) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res ? res.text : '');
+            }
+          });
+      });
 
-    if (result) {
-      break;
+      if (result) {
+        break;
+      }
+    } catch (e) {
+      console.log('fetchImdbPage error');
     }
   }
 
@@ -115,25 +141,39 @@ async function searchRt(title) {
   let result;
 
   for (let i = 0; i < 100; i++) {
-    result = await new Promise((resolve, reject) => {
-      request
-        .get(`https://www.rottentomatoes.com/api/private/v2.0/search`)
-        .query({
-          limit: 105 - i,
-          q: title
-        })
-        .end((err, res) => {
-          resolve(res ? res.body : '');
-        });
-    });
+    try {
+      result = await new Promise((resolve, reject) => {
+        request
+          .get(`https://www.rottentomatoes.com/api/private/v2.0/search`)
+          .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36')
+          .query({
+            limit: 105 - i,
+            q: title
+          })
+          .timeout({
+            response: 20000,
+            deadline: 60000
+          })
+          .end((err, res) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res ? res.body : '');
+            }
+          });
+      });
 
-    if (!result || Object.keys(result).length === 0) {
-      console.log('search rt no result');
-      await fetchPause();
-      continue;
-    }
+      if (!result || Object.keys(result).length === 0) {
+        console.log('searchRt no result');
+        await fetchPause();
+        continue;
+      }
 
-    if (result) {
+      if (result) {
+        break;
+      }
+    } catch (e) {
+      console.log('searchRt error');
       break;
     }
   }
@@ -145,15 +185,28 @@ async function fetchRtPage(path) {
   let result;
 
   while (true) {
-    result = await new Promise((resolve, reject) => {
-      request
-        .get(`https://www.rottentomatoes.com${path}`)
-        .end((err, res) => {
-          resolve(res ? res.text : '');
-        });
-    });
+    try {
+      result = await new Promise((resolve, reject) => {
+        request
+          .get(`https://www.rottentomatoes.com${path}`)
+          .set('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36')
+          .timeout({
+            response: 10000,
+            deadline: 60000
+          })
+          .end((err, res) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(res ? res.text : '');
+            }
+          });
+      });
 
-    if (result) {
+      if (result) {
+        break;
+      }
+    } catch (e) {
       break;
     }
   }
@@ -233,93 +286,101 @@ function areSameNames(name1, name2) {
           let rtSearchResults = await searchRt(title);
           let rtSearchResult;
 
-          if (rtSearchResults.movies) {
-            rtSearchResults = rtSearchResults.movies.filter(({ url }) => url !== '/m/null');
-          } else {
-            console.log(title, rtSearchResults);
-            rtSearchResults = [];
-          }
-
-          if (rtSearchResults.length === 1) {
-            rtSearchResult = rtSearchResults[0];
-          } else {
-            const yearResults = rtSearchResults.filter(({ year }) => year === moment(release_date).year());
-            const castResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
-            const nameResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
-            const yearNameResults = rtSearchResults
-              .filter(({ year }) => year === moment(release_date).year())
-              .filter(({ name }) => areSameNames(title, name));
-            const yearCastNameResults = rtSearchResults
-              .filter(({ year }) => year === moment(release_date).year())
-              .filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)))
-              .filter(({ name }) => areSameNames(title, name));
-
-            if (yearResults.length === 1) {
-              rtSearchResult = yearResults[0];
-            } else if (castResults.length === 1) {
-              rtSearchResult = castResults[0];
-            } else if (nameResults.length === 1) {
-              rtSearchResult = nameResults[0];
-            } else if (yearNameResults.length === 1) {
-              rtSearchResult = yearNameResults[0];
-            } else if ([ 1, 2 ].includes(yearCastNameResults.length)) {
-              rtSearchResult = yearCastNameResults[0];
+          if (rtSearchResults) {
+            if (rtSearchResults.movies) {
+              rtSearchResults = rtSearchResults.movies.filter(({ url }) => url !== '/m/null');
             } else {
-              rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)));
+              console.log(title, rtSearchResults);
+              rtSearchResults = [];
+            }
 
-              if (rtSearchResults.length === 1) {
-                rtSearchResult = rtSearchResults[0];
+            if (rtSearchResults.length === 1) {
+              rtSearchResult = rtSearchResults[0];
+            } else {
+              const yearResults = rtSearchResults.filter(({ year }) => year === moment(release_date).year());
+              const castResults = rtSearchResults.filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)));
+              const nameResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+              const yearNameResults = rtSearchResults
+                .filter(({ year }) => year === moment(release_date).year())
+                .filter(({ name }) => areSameNames(title, name));
+              const yearCastNameResults = rtSearchResults
+                .filter(({ year }) => year === moment(release_date).year())
+                .filter(({ castItems }) => castItems.some(({ name }) => imdbPage.includes(name)))
+                .filter(({ name }) => areSameNames(title, name));
+
+              if (yearResults.length === 1) {
+                rtSearchResult = yearResults[0];
+              } else if (castResults.length === 1) {
+                rtSearchResult = castResults[0];
+              } else if (nameResults.length === 1) {
+                rtSearchResult = nameResults[0];
+              } else if (yearNameResults.length === 1) {
+                rtSearchResult = yearNameResults[0];
+              } else if ([ 1, 2 ].includes(yearCastNameResults.length)) {
+                rtSearchResult = yearCastNameResults[0];
               } else {
-                rtSearchResults = rtSearchResults.filter(({ year }) => !year || [ year - 2, year - 1, year, year + 1, year + 2 ].includes(moment(release_date).year()));
+                rtSearchResults = rtSearchResults.filter(({ castItems }) => castItems.length === 0 || castItems.some(({ name }) => imdbPage.includes(name)));
 
                 if (rtSearchResults.length === 1) {
                   rtSearchResult = rtSearchResults[0];
                 } else {
-                  rtSearchResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+                  rtSearchResults = rtSearchResults.filter(({ year }) => !year || [ year - 2, year - 1, year, year + 1, year + 2 ].includes(moment(release_date).year()));
 
                   if (rtSearchResults.length === 1) {
                     rtSearchResult = rtSearchResults[0];
+                  } else {
+                    rtSearchResults = rtSearchResults.filter(({ name }) => areSameNames(title, name));
+
+                    if (rtSearchResults.length === 1) {
+                      rtSearchResult = rtSearchResults[0];
+                    }
                   }
                 }
               }
             }
-          }
 
-          if (rtSearchResult) {
-            const rtPage = await fetchRtPage(rtSearchResult.url);
-            const onDiscDateGroups = rtPage
-              .substring(rtPage.indexOf('In Theaters:'), rtPage.indexOf('Studio:'))
-              .match(/<li.*?>.+?On Disc\/Streaming:.+?<time datetime=".+?">(.+?)<\/time>.+?<\/li>/s);
+            if (rtSearchResult) {
+              const rtPage = await fetchRtPage(rtSearchResult.url);
 
-            if (onDiscDateGroups && onDiscDateGroups.length > 1) {
-              discDate = moment(onDiscDateGroups[1], 'MMM DD, YYYY');
+              if (rtPage) {
+                const onDiscDateGroups = rtPage
+                  .substring(rtPage.indexOf('In Theaters:'), rtPage.indexOf('Studio:'))
+                  .match(/<li.*?>.+?On Disc\/Streaming:.+?<time datetime=".+?">(.+?)<\/time>.+?<\/li>/s);
+
+                if (onDiscDateGroups && onDiscDateGroups.length > 1) {
+                  discDate = moment(onDiscDateGroups[1], 'MMM DD, YYYY');
+                }
+
+                /*const rtGroups = rtPage.match(/<script type="application\/ld\+json">(.+?)<\/script>/s);
+
+                if (rtGroups && rtGroups.length > 1) {
+                  rt = rtGroups[1];
+                }*/
+
+                const rtRatingGroups = rtPage.match(/root.RottenTomatoes.context.scoreInfo = (.+?});/s);
+
+                if (rtRatingGroups && rtRatingGroups.length > 1) {
+                  rtRating = JSON.parse(rtRatingGroups[1]);
+                }
+
+                const rtTopCriticsReviewsPage = await fetchRtPage(`${rtSearchResult.url}/reviews/?type=top_critics`);
+
+                if (rtTopCriticsReviewsPage) {
+                  const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
+                    rtTopCriticsReviewsPage.indexOf('<section id="content"'),
+                    rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
+                  const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
+                    text: row.querySelector('.the_review').text.trim(),
+                    positive: !row.querySelector('.rotten')
+                  }));
+
+                  rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
+                    .take(2)
+                    .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
+                    .value();
+                }
+              }
             }
-
-            /*const rtGroups = rtPage.match(/<script type="application\/ld\+json">(.+?)<\/script>/s);
-
-            if (rtGroups && rtGroups.length > 1) {
-              rt = rtGroups[1];
-            }*/
-
-            const rtRatingGroups = rtPage.match(/root.RottenTomatoes.context.scoreInfo = (.+?});/s);
-
-            if (rtRatingGroups && rtRatingGroups.length > 1) {
-              rtRating = JSON.parse(rtRatingGroups[1]);
-            }
-
-            const rtTopCriticsReviewsPage = await fetchRtPage(`${rtSearchResult.url}/reviews/?type=top_critics`);
-            const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
-              rtTopCriticsReviewsPage.indexOf('<section id="content"'),
-              rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
-            const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
-              text: row.querySelector('.the_review').text.trim(),
-              positive: !row.querySelector('.rotten')
-            }));
-
-            rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
-              .take(2)
-              .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
-              .value();
           }
 
           // scores
@@ -486,46 +547,48 @@ function areSameNames(name1, name2) {
           let rtSearchResults = await searchRt(name);
           let rtSearchResult;
 
-          if (rtSearchResults.tvSeries) {
-            rtSearchResults = rtSearchResults.tvSeries.filter(({ url }) => url !== '/tv/null');
-          } else {
-            console.log(name, rtSearchResults);
-            rtSearchResults = [];
-          }
-
-          if (rtSearchResults.length === 1) {
-            rtSearchResult = rtSearchResults[0];
-          } else {
-            const startYearResults = rtSearchResults.filter(({ startYear }) => startYear === moment(first_air_date).year());
-            const endYearResults = rtSearchResults.filter(({ endYear }) => endYear === moment(last_air_date).year());
-            const nameResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
-            const startYearNameResults = rtSearchResults
-              .filter(({ startYear }) => startYear === moment(first_air_date).year())
-              .filter(({ title }) => areSameNames(title, name));
-
-            if (startYearResults.length === 1) {
-              rtSearchResult = startYearResults[0];
-            } else if (endYearResults.length === 1) {
-              rtSearchResult = endYearResults[0];
-            } else if (nameResults.length === 1) {
-              rtSearchResult = nameResults[0];
-            } else if ([ 1, 2 ].includes(startYearNameResults.length)) {
-              rtSearchResult = startYearNameResults[0];
+          if (rtSearchResults) {
+            if (rtSearchResults.tvSeries) {
+              rtSearchResults = rtSearchResults.tvSeries.filter(({ url }) => url !== '/tv/null');
             } else {
-              rtSearchResults = rtSearchResults.filter(({ startYear }) => !startYear || [ startYear - 2, startYear - 1, startYear, startYear + 1, startYear + 2 ].includes(moment(first_air_date).year()));
+              console.log(name, rtSearchResults);
+              rtSearchResults = [];
+            }
+
+            if (rtSearchResults.length === 1) {
+              rtSearchResult = rtSearchResults[0];
+            } else {
+              const startYearResults = rtSearchResults.filter(({ startYear }) => startYear === moment(first_air_date).year());
+              const endYearResults = rtSearchResults.filter(({ endYear }) => endYear === moment(last_air_date).year());
+              const nameResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+              const startYearNameResults = rtSearchResults
+                .filter(({ startYear }) => startYear === moment(first_air_date).year())
+                .filter(({ title }) => areSameNames(title, name));
 
               if (startYearResults.length === 1) {
-                rtSearchResult = rtSearchResults[0];
+                rtSearchResult = startYearResults[0];
+              } else if (endYearResults.length === 1) {
+                rtSearchResult = endYearResults[0];
+              } else if (nameResults.length === 1) {
+                rtSearchResult = nameResults[0];
+              } else if ([ 1, 2 ].includes(startYearNameResults.length)) {
+                rtSearchResult = startYearNameResults[0];
               } else {
-                rtSearchResults = rtSearchResults.filter(({ endYear }) => !endYear || [ endYear - 2, endYear - 1, endYear, endYear + 1, endYear + 2 ].includes(moment(last_air_date).year()));
+                rtSearchResults = rtSearchResults.filter(({ startYear }) => !startYear || [ startYear - 2, startYear - 1, startYear, startYear + 1, startYear + 2 ].includes(moment(first_air_date).year()));
 
-                if (rtSearchResults.length === 1) {
+                if (startYearResults.length === 1) {
                   rtSearchResult = rtSearchResults[0];
                 } else {
-                  rtSearchResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+                  rtSearchResults = rtSearchResults.filter(({ endYear }) => !endYear || [ endYear - 2, endYear - 1, endYear, endYear + 1, endYear + 2 ].includes(moment(last_air_date).year()));
 
                   if (rtSearchResults.length === 1) {
                     rtSearchResult = rtSearchResults[0];
+                  } else {
+                    rtSearchResults = rtSearchResults.filter(({ title }) => areSameNames(title, name));
+
+                    if (rtSearchResults.length === 1) {
+                      rtSearchResult = rtSearchResults[0];
+                    }
                   }
                 }
               }
@@ -553,25 +616,31 @@ function areSameNames(name1, name2) {
             if (rtSearchResult) {
               const seasonUrl = `${rtSearchResult.url.replace('/s01', '')}/s${zeroFill(2, season.season_number)}`;
               const rtPage = await fetchRtPage(seasonUrl);
-              const rtGroups = rtPage.match(/root.RottenTomatoes.context.result = (.+?});/s);
 
-              if (rtGroups && rtGroups.length > 1) {
-                rt = JSON.parse(rtGroups[1]);
+              if (rtPage) {
+                const rtGroups = rtPage.match(/root.RottenTomatoes.context.result = (.+?});/s);
+
+                if (rtGroups && rtGroups.length > 1) {
+                  rt = JSON.parse(rtGroups[1]);
+                }
+
+                const rtTopCriticsReviewsPage = await fetchRtPage(`${seasonUrl}/reviews/?type=top_critics`);
+
+                if (rtTopCriticsReviewsPage) {
+                  const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
+                    rtTopCriticsReviewsPage.indexOf('<section id="content"'),
+                    rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
+                  const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
+                    text: row.querySelector('.critic__review-quote').text.trim(),
+                    positive: !row.querySelector('.rotten')
+                  }));
+
+                  rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
+                    .take(2)
+                    .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
+                    .value();
+                }
               }
-
-              const rtTopCriticsReviewsPage = await fetchRtPage(`${seasonUrl}/reviews/?type=top_critics`);
-              const rtTopCriticsReviewsHtml = htmlParser.parse(rtTopCriticsReviewsPage.substring(
-                rtTopCriticsReviewsPage.indexOf('<section id="content"'),
-                rtTopCriticsReviewsPage.indexOf('</section>', rtTopCriticsReviewsPage.indexOf('<section id="content"')) + '</section>'.length + 1));
-              const rtTopCriticsAllReviews = rtTopCriticsReviewsHtml.querySelectorAll('.review_table_row').map(row => ({
-                text: row.querySelector('.critic__review-quote').text.trim(),
-                positive: !row.querySelector('.rotten')
-              }));
-
-              rtTopCriticsReviews = _(rtTopCriticsAllReviews.filter(({ positive }) => positive))
-                .take(2)
-                .concat(_(rtTopCriticsAllReviews.filter(({ positive }) => !positive)).take(2).value())
-                .value();
             }
 
             // scores
