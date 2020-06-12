@@ -22,7 +22,7 @@ export default class App extends PureComponent {
 
   state = {
     didCatch: false,
-    hideSubscribeForm: localStorage.hideSubscribeForm,
+    hideSubscribeForm: true,//localStorage.hideSubscribeForm,
     showSubscribeConfirmation: false,
     email: ''
   };
